@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+circular-gradient {
+    background: radial-gradient(circle, #333, #000);
+  }
