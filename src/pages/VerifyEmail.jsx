@@ -31,6 +31,7 @@ function VerifyEmail() {
       password,
       confirmPassword,
     } = signupData;
+    console.log("SignupData in verify step:", signupData);
 
     dispatch(
       signUp(
