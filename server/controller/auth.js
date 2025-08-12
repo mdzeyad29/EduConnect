@@ -60,108 +60,9 @@ exports.otpSend =  async(req,res)=>{
         });
     }
 }
-// function for SignUp signUp
-// exports.signUp = async (req, res) => {
-// 	try {
-// 		// Destructure fields from the request body
-// 		const {
-// 			firstName,
-// 			lastName,
-// 			email,
-// 			password,
-// 			confirmPassword,
-// 			accountType,
-// 			contactNumber,
-// 			otp,
-// 		} = req.body;
-// 		// Check if All Details are there or not
-// 		if (
-// 			!firstName ||
-// 			!lastName ||
-// 			!email ||
-// 			!password ||
-// 			!confirmPassword ||
-// 			!otp
-// 		) {
-// 			return res.status(403).send({
-// 				success: false,
-// 				message: "All Fields are required",
-// 			});
-// 		}
-// 		// Check if password and confirm password match
-// 		if (password !== confirmPassword) {
-// 			return res.status(403).json({
-// 				success: false,
-// 				message:
-// 					"Password and Confirm Password do not match. Please try again.",
-// 			});
-// 		}
 
-// 		// Check if user already exists
-// 		const existingUser = await User.findOne({ email });
-// 		if (existingUser) {
-// 			return res.status(400).json({
-// 				success: false,
-// 				message: "User already exists. Please sign in to continue.",
-// 			});
-// 		}
 
-// 		// Find the most recent OTP for the email
-// 		const response = await OTP.find({ email }).sort({ createdAt: -1 }).limit(1);
-// 		console.log(response);
-// 		if (response.length === 0) {
-// 			// OTP not found for the email
-// 			return res.status(400).json({
-// 				success: false,
-// 				message: "The OTP is not valid",
-// 			});
-// 		} else if (otp !== response[0].otp) {
-// 			// Invalid OTP
-// 			return res.status(400).json({
-// 				success: false,
-// 				message: "The OTP is not valid",
-// 			});
-// 		}
 
-// 		// Hash the password
-// 		const hashedPassword = await bcrypt.hash(password, 10);
-
-// 		// Create the user
-// 		let approved = "";
-// 		approved === "Instructor" ? (approved = false) : (approved = true);
-
-// 		// Create the Additional Profile For User
-// 		const profileDetails = await Profile.create({
-// 			gender: null,
-// 			dateOfBirth: null,
-// 			about: null,
-// 			contactNumber: null,
-// 		});
-// 		const user = await User.create({
-// 			firstName,
-// 			lastName,
-// 			email,
-// 			contactNumber,
-// 			password: hashedPassword,
-// 			accountType: accountType,
-// 			approved: approved,
-// 			additionalDetails: profileDetails._id,
-// 			image: `https://api.dicebear.com/5.x/initials/svg?seed=${firstName} ${lastName}`,
-// 		});
-
-// 		return res.status(200).json({
-// 			success: true,
-// 			user,
-// 			message: "User registered successfully",
-// 		});
-// 	} catch (error) {
-// 		console.error(error);
-// 		return res.status(500).json({
-// 			success: false,
-// 			message: "User cannot be registered. Please try again.",
-// 		});
-// 	}
-// };
 exports.signUp = async (req, res) => {
 	try {
 		// Destructure fields from the request body with corrected field names
@@ -171,11 +72,11 @@ exports.signUp = async (req, res) => {
 			email,
 			password,
 			confirmpassword,
-			accounttype,
+			accountType,
 			contactnumber,
 			otp,
 		} = req.body;
-
+console.log("Received signup body:", req.body);
 		// Check if all required fields are provided
 		if (
 			!firstName ||
@@ -228,7 +129,7 @@ exports.signUp = async (req, res) => {
 		const hashedPassword = await bcrypt.hash(password, 10);
 
 		// Determine if the account should be approved based on the account type
-		const approved = accounttype === "Instructor" ? false : true;
+		const approved = accountType === "Instructor" ? false : true;
 
 		// Create the additional profile for the user
 		const profileDetails = await Profile.create({
@@ -245,7 +146,7 @@ exports.signUp = async (req, res) => {
 			email,
 			contactNumber: contactnumber,
 			password: hashedPassword,
-			accountType: accounttype,
+			accountType: accountType,
 			approved,
 			additionalDetails: profileDetails._id,
 			image: `https://api.dicebear.com/5.x/initials/svg?seed=${firstName} ${lastName}`,
@@ -291,7 +192,7 @@ exports.signUp = async (req, res) => {
         let payload = {
             email:user.email,
             id:user._id,
-            accounttype:user.accountType,
+            accountType:user.accountType,
         }
         if( await bcrypt.compare(password,user.password)){
             // if password is matched

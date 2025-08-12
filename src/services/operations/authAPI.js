@@ -34,9 +34,20 @@ export function sendOtp(email, navigate) {
       toast.success("OTP Sent Successfully")
       navigate("/verify-email")
     } catch (error) {
-      console.log("SENDOTP API ERROR............", error)
-      toast.error("Could Not Send OTP")
-    }
+  if (error.response) {
+    // Server responded with non-2xx status
+    console.error("API response error:", error.response.data);
+    toast.error(error.response.data.message || "Could Not Send OTP");
+  } else if (error.request) {
+    // Request made but no response received
+    console.error("No response from server:", error.request);
+    toast.error("No response from server");
+  } else {
+    // Other errors
+    console.error("Error setting up request:", error.message);
+    toast.error(error.message);
+  }
+}
     dispatch(setLoading(false))
     toast.dismiss(toastId)
   }
@@ -58,7 +69,7 @@ export function signUp(
     try {
       console.log("Api Response")
       const response = await apiConnector("POST",SIGNUP_API, { 
-        accountType,
+        accountType:accountType,
         firstName,
         lastName,
         email,
@@ -75,10 +86,22 @@ export function signUp(
       toast.success("Signup Successful")
       navigate("/login")
     } catch (error) {
-      console.log("SIGNUP API ERROR............", error)
-      toast.error("Signup Failed")
-      navigate("/signup")
-    }
+  if (error.response) {
+    // Server responded with status outside 2xx
+    console.error("API response error:", error.response.data);
+    toast.error(error.response.data.message || "Signup Failed");
+  } else if (error.request) {
+    // Request was made but no response received
+    console.error("No response received:", error.request);
+    toast.error("No response from server");
+  } else {
+    // Other errors (e.g., setup error)
+    console.error("Error:", error.message);
+    toast.error(error.message);
+  }
+  navigate("/signup");
+}
+
     dispatch(setLoading(false))
     toast.dismiss(toastId)
   }

@@ -41,7 +41,7 @@ exports.auth = async(req,res,next)=>{
 // isStudent 
 exports.isStudent = async(req,res,next)=>{
   try{
-    if(req.user.accounttype!=="Student"){
+    if(req.user.accountType!=="Student"){
         return res.status(400).json({
             success:false,
             message:"Student is Not allowed"
@@ -59,7 +59,7 @@ exports.isStudent = async(req,res,next)=>{
 //isAdmin
 exports.isAdmin = async(req,res,next)=>{
     try{
-        if(req.user.accounttype!=="Admin"){
+        if(req.user.accountType!=="Admin"){
             return res.status(400).json({
                 success:false,
                 message:"Admin is Not allowed"
@@ -78,7 +78,7 @@ exports.isAdmin = async(req,res,next)=>{
 // isInstructor
 exports.isInstructor= async(req,res,next)=>{
     try{
-        if(req.user.accounttype!=="Admin"){
+        if(req.user.accountType!=="Admin"){
             return res.status(400).json({
                 success:false,
                 message:"Instructor is Not allowed"
