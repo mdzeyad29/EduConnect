@@ -5,7 +5,6 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.6",
     "axios": "^1.7.2",
-    "concurrently": "^8.2.2",
     "lucide-react": "^0.483.0",
     "otp-input-react": "^0.3.0",
     "react": "^18.2.0",
@@ -24,11 +23,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thepranaygupta/react-tailwind-css-starter-pack.git"
+    "url": "git+https://github.com/zeyad/StudyNotation.git"
   },
-  "author": "Pranay Gupta",
+  "author": "Md Zeyad Ali",
   "bugs": {
-    "url": "https://github.com/thepranaygupta/react-tailwind-css-starter-pack/issues"
+    "url": "https://github.com/zeyad/react-tailwind-css-starter-pack/issues"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -56,6 +55,7 @@
     ]
   },
   "devDependencies": {
+    "concurrently": "^9.2.0",
     "tailwindcss": "^3.2.7"
   }
 }
