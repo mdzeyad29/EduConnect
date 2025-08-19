@@ -5,9 +5,9 @@ import { useDispatch } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import { sendOtp } from "../../../services/operations/authAPI"
 import { setSignupData } from "../../../slice/authSlice"
-import { ACCOUNT_TYPE } from "../../../slice/utilis/constants"
 import Tab from "../../common/Tab"
 import signup from "../../../assets/Images/signup.webp"
+import { ACCOUNT_TYPE } from "../../../utils/constants"
 
 function SignupForm() {
   const navigate = useNavigate()
