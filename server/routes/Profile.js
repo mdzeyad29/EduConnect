@@ -19,7 +19,7 @@ router.delete("/deleteProfile", deleteProfile)
 router.put("/updateProfile", auth, ProfileController)
 router.get("/getUserDetails", auth, getAllUserDetail)
 // Get Enrolled Courses
-router.get("/getEnrolledCourses", auth, getEnrolledCourses)
+ router.get("/getEnrolledCourses", auth, getEnrolledCourses)
 router.put("/updateDisplayPicture", auth, updateDisplayPicture)
 
 module.exports = router

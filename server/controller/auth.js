@@ -197,15 +197,16 @@ console.log("Received signup body:", req.body);
         if( await bcrypt.compare(password,user.password)){
             // if password is matched
            // generate token
-     let token = jwt.sign(payload,process.env.JWT_SECERT,{
+     let token = jwt.sign(payload,process.env.JWT_SECRET,{
           expiresIn:"24h"
      });
      user.token=token;
+	 console.log("here is the token for login forn and send ", token)
      await User.findByIdAndUpdate(user._id, { token: token });
      user.password=undefined;
      const option = {
         expires: new Date(Date.now()+3*24*60*60*1000),
-        httponly:true
+        httpOnly:true
      }
      res.cookie("EduConnect",token,option).status(200).json({
         success:true,
@@ -232,10 +233,6 @@ console.log("Received signup body:", req.body);
 }
 
 // change Password
-// exports.changePassword = async(req,res)=>{
-    
-// }
-
 exports.changePassword = async (req, res) => {
 	try {
 		// Get user data from req.user

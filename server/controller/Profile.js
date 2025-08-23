@@ -134,7 +134,7 @@ exports.updateDisplayPicture = async (req, res) => {
 
 exports.getEnrolledCourses = async (req, res) => {
   try {
-    const userId = req.user.id
+    const userId = req.User.id
     const userDetails = await User.findOne({
       _id: userId,
     })

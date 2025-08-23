@@ -1,5 +1,5 @@
 import "./App.css";
-import {Route, Routes } from "react-router-dom";
+import {Route, Routes, useSearchParams } from "react-router-dom";
 import{ Home} from "./pages/Home"
 import{ Navbar }from "./components/common/Navbar"
 import OpenRoute from "./components/core/Auth/OpenRoute"
@@ -15,7 +15,13 @@ import MyProfile from "./components/core/Dashboard/MyProfile";
 import PrivateRoute from "./components/core/Auth/PrivateRoute";
 import Settings from "./components/core/Dashboard/Setting/Setting";
 import Enroll from "./components/core/Dashboard/EnrolledCourses/enrolled";
+import AddCourse from "./components/core/Dashboard/AddCourse";
+import { useSelector } from "react-redux";
+import { ACCOUNT_TYPE } from "./utils/constants";
+
+
 function App() {
+  const {user} = useSelector((state)=>state.profile)
   return (
    <div className="flex flex-col w-screen min-h-screen bg-richblack-900 font-inter">
     <Navbar/>
@@ -89,6 +95,15 @@ function App() {
           </PrivateRoute>
       }
     >
+
+     {
+        user?.accountType === ACCOUNT_TYPE.INSTRUCTOR && (
+          <>
+          <Route path="dashboard/add-course" element={<AddCourse />} />
+          
+          </>
+        )
+      }
       <Route path="dashboard/my-profile" element={<MyProfile />} />
        <Route path="dashboard/Settings" element={<Settings />} />
        <Route path="/dashboard/enrolled-courses" element={<Enroll />} />"

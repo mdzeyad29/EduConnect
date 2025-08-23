@@ -1,14 +1,18 @@
 const Tags = require("../model/Category");
 const User = require("../model/User");
-const Course = require("../model/course");
+const Course = require("../model/Course");
 const {uploadImageTocloudinary}= require("../utilis/imageUploader");
 // create Course handler
 exports.createCourse = async(req,res)=>{
     try{
         // get data
+        // createCourse.js
+console.log("In createCourse controller");
+        console.log("Request Body:", req.body);
         const{courseName,courseDescription,whatYouWillLearn,price,tags}=req.body;
         // getthumbnails
-        const thumbnails = req.files.thumbnailsImage;
+        //   const thumbnails = req.file?.path;;
+        // console.log("thumbnails are",thumbnails)
         //validations
         if(!courseName||!courseDescription||!whatYouWillLearn||!price||!tags){
             return res.status(400).json({
@@ -18,7 +22,8 @@ exports.createCourse = async(req,res)=>{
 
         }
         // check for instructor
-        const userId = req.user.id;
+        const userId = req.User.id;
+        console.log("UserId Controller", userId)
         const instructorDetail=await User.findById(userId);
         console.log("Instructor Detail",instructorDetail);
         if(!instructorDetail){
@@ -28,15 +33,16 @@ exports.createCourse = async(req,res)=>{
            });
         }
         // check  given tag detail is valid or not
-        const tagDetail = await Tags.findById(tags);
-        if(!tagDetail){
+       const tagDetails = await Tags.find({ name: { $in: tags } });
+        // const tagDetail = await Tags.findById(tags);
+        if(!tagDetails){
             return res.status(401).json({
                 success:false,
                 message:"Tagdetail is not found"
            });
         }
         // upload Image to cloudinary
-        const thumbnailsImage = await uploadImageTocloudinary(thumbnails,process.env.FOLDER_NAME);
+        // const thumbnailsImage = await uploadImageTocloudinary( thumbnails,process.env.FOLDER_NAME);
         // create an entry for new courses
         const newCourse = await Course.create({
             courseName,
@@ -44,8 +50,8 @@ exports.createCourse = async(req,res)=>{
             whatYouWillLearn:whatYouWillLearn,
             instructor:instructorDetail._id,
             price,
-            tags:tagDetail._id,
-            thumbnails:thumbnailsImage.secure_url,
+            tags:tagDetails,
+            // thumbnails:thumbnailsImage,
 
         });
         // add the new cousre to the user  Schema Instructor
@@ -59,7 +65,6 @@ exports.createCourse = async(req,res)=>{
             success:true,
             message:"Courses Created Successfully"
        });
-
     }catch(error){
         return res.status(401).json({
             success:false,
