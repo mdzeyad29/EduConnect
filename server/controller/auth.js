@@ -61,8 +61,6 @@ exports.otpSend =  async(req,res)=>{
     }
 }
 
-
-
 exports.signUp = async (req, res) => {
 	try {
 		// Destructure fields from the request body with corrected field names
@@ -166,10 +164,8 @@ console.log("Received signup body:", req.body);
 	}
 };
 
-
-
 // functon for LogIN
-       exports.logIn = async(req,res)=>{
+exports.logIn = async(req,res)=>{
     try{
         // fetch dataclear
         const {email,password} = req.body;
