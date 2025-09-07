@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom"
 
 import { fetchInstructorCourses } from "../../../services/operations/courseDetailsAPI"
 import IconBtn from "../../common/IconBtn"
-import CoursesTable from "./InstructorCourses/CourseTable"
+import CoursesTable from "../../core/Dashboard/InstructorCourses/CourseTable"
 
 
 export default function MyCourses() {
@@ -29,7 +29,7 @@ export default function MyCourses() {
       <div className="flex items-center justify-between mb-14">
         <h1 className="text-3xl font-medium text-richblack-5">My Courses</h1>
         <IconBtn
-          text="Add Course"
+          text="New"
           onclick={() => navigate("/dashboard/add-course")}
         >
           <VscAdd />

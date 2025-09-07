@@ -101,13 +101,15 @@ function App() {
         user?.accountType === ACCOUNT_TYPE.INSTRUCTOR && (
           <>
           <Route path="dashboard/my-courses" element={<MyCourses />} />
+           <Route path="/dashboard/add-course" element={<AddCourse />}  />
           
           </>
         )
       }
       <Route path="dashboard/my-profile" element={<MyProfile />} />
        <Route path="dashboard/Settings" element={<Settings />} />
-       <Route path="/dashboard/enrolled-courses" element={<Enroll />} />"
+       <Route path="/dashboard/enrolled-courses" element={<Enroll />} />
+       
      </Route>
 
     </Routes>
