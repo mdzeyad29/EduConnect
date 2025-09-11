@@ -38,6 +38,11 @@ export default function CourseInformationForm() {
       }
       setLoading(false)
     }
+
+
+const handleImageUpload = (event)=>{
+const imageupload =  event.target.files
+}
     // if form is in edit mode
     if (editCourse) {
       // console.log("data populated", editCourse)
@@ -265,14 +270,11 @@ export default function CourseInformationForm() {
 
   {/* Course Thumbnail Image */}
   <div>
-    <Upload
-      name="courseImage"
-      label="Course Thumbnail"
-      register={register}
-      setValue={setValue}
-      errors={errors}
-      editData={editCourse ? course?.thumbnail : null}
-    />
+    <input
+  type="file"
+  onChange={handleImageUpload}
+  accept="image/jpeg,image/jpg,image/png"
+/>
   </div>
 
   {/* Benefits of the course */}
