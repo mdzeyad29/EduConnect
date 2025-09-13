@@ -4,7 +4,6 @@ import { toast } from "react-hot-toast"
 import { HiOutlineCurrencyRupee } from "react-icons/hi"
 import { MdNavigateNext } from "react-icons/md"
 import { useDispatch, useSelector } from "react-redux"
-
 import { setCourse, setStep } from "../../../../../slice/courseSlice"
 import { COURSE_STATUS } from "../../../../../utils/constants"
 import IconBtn from "../../../../common/IconBtn"
@@ -272,7 +271,7 @@ const imageupload =  event.target.files
   <div>
     <input
   type="file"
-  onChange={handleImageUpload}
+  // onChange={handleImageUpload}
   accept="image/jpeg,image/jpg,image/png"
 />
   </div>

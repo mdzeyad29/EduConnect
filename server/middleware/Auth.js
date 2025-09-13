@@ -92,10 +92,10 @@ exports.isInstructor= async(req,res,next)=>{
 exports.isAdmin = async(req,res,next)=>{
     try{
       console.log("here is user",req.User);
-        if(req.User.accountType!=="Admin"){
+       if (req.User.accountType === "Admin") {
             return res.status(400).json({
                 success:false,
-                message:"Admin is Not allowed"
+                message:"Admin is Not alloweded"
             })
         }
             

@@ -14,6 +14,7 @@ const {cloudinaryConnect } = require("./config/cloudinary");
 const fileUpload = require("express-fileupload");
 
 const dotenv = require("dotenv");
+const { showAllCategories } = require("./controller/Category");
 dotenv.config();
 const PORT = process.env.PORT || 4000;
 
@@ -44,7 +45,7 @@ app.use("/api/v1/auth", userRoutes);
 app.use("/api/v1/profile", profileRoutes);
 app.use("/api/v1/course", courseRoutes);
 app.use("/api/v1/payment", paymentRoutes);
-
+app.use("/api/v1/course",showAllCategories)
 //default routes
 
 app.get("/",(req,res)=>{
