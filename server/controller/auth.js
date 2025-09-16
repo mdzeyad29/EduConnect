@@ -61,8 +61,6 @@ exports.otpSend =  async(req,res)=>{
     }
 }
 
-
-
 exports.signUp = async (req, res) => {
 	try {
 		// Destructure fields from the request body with corrected field names
@@ -166,10 +164,8 @@ console.log("Received signup body:", req.body);
 	}
 };
 
-
-
 // functon for LogIN
-       exports.logIn = async(req,res)=>{
+exports.logIn = async(req,res)=>{
     try{
         // fetch dataclear
         const {email,password} = req.body;
@@ -198,8 +194,9 @@ console.log("Received signup body:", req.body);
             // if password is matched
            // generate token
      let token = jwt.sign(payload,process.env.JWT_SECRET,{
-          expiresIn:"24h"
+          expiresIn:"44h"
      });
+	
      user.token=token;
 	 console.log("here is the token for login forn and send ", token)
      await User.findByIdAndUpdate(user._id, { token: token });

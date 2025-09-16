@@ -1,9 +1,11 @@
 const Tags = require("../model/Category");
+const Category = require("../model/Category")
 
 // create Category handler
 exports.Category = async(req,res)=>{
     try{
         // fetch data
+        console.log("inside the category controller ");
         const {name,description}=req.body
         // validation
         if(!name||!description){

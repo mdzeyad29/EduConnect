@@ -9,16 +9,16 @@ exports.auth = async(req,res,next)=>{
             console.log("Auth middleware start: req path",  req.path);
 
              console.log("Auth middleware start: req method", req.method);
-             console.log("Auth middleware start: req body", req.body);
+             console.log("Auth middleware Body: req body", req.body);
 
              console.log("Incoming Headers:", req.headers);
              console.log("Incoming Cookies:", req.cookies);
              console.log("Incoming Body:", req.body);
 
        const token = req.cookies.EduConnect || 
-              req.body.token ||
-              (req.headers.authorization && req.headers.authorization.replace("Bearer ", ""));
-   console.log("token",token)
+               req.body.token ||
+               (req.headers.authorization && req.headers.authorization.replace("Bearer ", ""));
+           console.log("token",token);
           if(!token){
             return res.status(401).json({
                 success:false,
@@ -58,7 +58,7 @@ exports.isStudent = async(req,res,next)=>{
             message:"Student is Not allowed"
         })
     }
-        
+      next()  ;
   }catch(error){
     console.log(error);
     return res.status(400).json({
@@ -92,13 +92,14 @@ exports.isInstructor= async(req,res,next)=>{
 exports.isAdmin = async(req,res,next)=>{
     try{
       console.log("here is user",req.User);
-        if(req.User.accountType!=="Admin"){
-            return res.status(400).json({
-                success:false,
-                message:"Admin is Not allowed"
-            })
+      console.log("Account Type",req.User.accountType);
+      if (req.User.accountType !== "Admin" && req.User.accountType !== "Instructor") {
+            return res.status(403).json({
+                success: false,
+                message: "This is a protected route only for Admin or Instructor",
+            });
         }
-            
+        next()    ;
       }catch(error){
         console.log(error);
         return res.status(400).json({

@@ -5,12 +5,18 @@ export const axiosInstance = axios.create({
   withCredentials: true,            // <--- important!
 });
 
-export const apiConnector = (method, url, bodyData, headers, params) => {
-    return axiosInstance({
-        method:`${method}`,
-        url:`${url}`,
-        data: bodyData ? bodyData : null,
-        headers: headers ? headers: null,
-        params: params ? params : null,
-    });
+export const apiConnector = (method, url, bodyData = null, headers = {}, params = {}) => {
+    const config = {
+        method: method,
+        url: url,
+        headers: headers,
+        params: params,
+    };
+
+    // Only include data if it's not null and method allows it
+    if (bodyData && ["POST", "PUT", "PATCH"].includes(method.toUpperCase())) {
+        config.data = bodyData;
+    }
+
+    return axiosInstance(config);
 }

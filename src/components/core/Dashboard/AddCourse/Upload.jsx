@@ -3,6 +3,7 @@ import { useDropzone } from "react-dropzone"
 import { FiUploadCloud } from "react-icons/fi"
 import { useSelector } from "react-redux"
 
+import "video-react/dist/video-react.css"
 import { Player } from "video-react"
 
 export default function Upload({
@@ -92,24 +93,56 @@ export default function Upload({
             )}
           </div>
         ) : (
-          <div
-            className="flex flex-col items-center w-full p-6"
-            {...getRootProps()}
-          >
-            <input {...getInputProps()} ref={inputRef} />
-            <div className="grid rounded-full aspect-square w-14 place-items-center bg-pure-greys-800">
-              <FiUploadCloud className="text-2xl text-yellow-50" />
-            </div>
-            <p className="mt-2 max-w-[200px] text-center text-sm text-richblack-200">
-              Drag and drop an {!video ? "image" : "video"}, or click to{" "}
-              <span className="font-semibold text-yellow-50">Browse</span> a
-              file
-            </p>
-            <ul className="flex justify-between mt-10 space-x-12 text-xs text-center list-disc text-richblack-200">
-              <li>Aspect ratio 16:9</li>
-              <li>Recommended size 1024x576</li>
-            </ul>
-          </div>
+          
+         <div
+  {...getRootProps()}
+  className={`${
+    isDragActive ? "bg-richblack-600" : "bg-richblack-700"
+  } flex min-h-[250px] cursor-pointer items-center justify-center rounded-md border-2 border-dotted border-richblack-500`}
+>
+  {previewSource ? (
+    <div className="flex flex-col w-full p-6">
+      {!video ? (
+        <img
+          src={previewSource}
+          alt="Preview"
+          className="object-cover w-full h-full rounded-md"
+        />
+      ) : (
+        <Player aspectRatio="16:9" playsInline src={previewSource} />
+      )}
+      {!viewData && (
+        <button
+          type="button"
+          onClick={() => {
+            setPreviewSource("")
+            setSelectedFile(null)
+            setValue(name, null)
+          }}
+          className="mt-3 underline text-richblack-400"
+        >
+          Cancel
+        </button>
+      )}
+    </div>
+  ) : (
+    <div className="flex flex-col items-center w-full p-6">
+      <input {...getInputProps()} ref={inputRef} />
+      <div className="grid rounded-full aspect-square w-14 place-items-center bg-pure-greys-800">
+        <FiUploadCloud className="text-2xl text-yellow-50" />
+      </div>
+      <p className="mt-2 max-w-[200px] text-center text-sm text-richblack-200">
+        Drag and drop an {!video ? "image" : "video"}, or click to{" "}
+        <span className="font-semibold text-yellow-50">Browse</span> a file
+      </p>
+      <ul className="flex justify-between mt-10 space-x-12 text-xs text-center list-disc text-richblack-200">
+        <li>Aspect ratio 16:9</li>
+        <li>Recommended size 1024x576</li>
+      </ul>
+    </div>
+  )}
+</div>
+
         )}
       </div>
       {errors[name] && (
