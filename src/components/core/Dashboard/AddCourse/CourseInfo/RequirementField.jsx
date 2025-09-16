@@ -33,7 +33,7 @@ const RequirementField = ({name, label, register, errors, setValue, getValues}) 
     <div>
 
         <label htmlFor={name}>{label}<sup>*</sup></label>
-        <div>
+        <div >
             <input
                 type='text'
                 id={name}

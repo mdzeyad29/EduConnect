@@ -194,8 +194,9 @@ exports.logIn = async(req,res)=>{
             // if password is matched
            // generate token
      let token = jwt.sign(payload,process.env.JWT_SECRET,{
-          expiresIn:"24h"
+          expiresIn:"44h"
      });
+	
      user.token=token;
 	 console.log("here is the token for login forn and send ", token)
      await User.findByIdAndUpdate(user._id, { token: token });

@@ -24,41 +24,45 @@ export default function CourseInformationForm() {
   const dispatch = useDispatch()
   const { token } = useSelector((state) => state.auth)
   const { course, editCourse } = useSelector((state) => state.course)
-  const [loading, setLoading] = useState(false)
-  const [courseCategories, setCourseCategories] = useState([])
+  const [loading, setLoading] = useState(false);
+  const [Tag,setTags]=useState([]);
+  const [courseCategories, setCourseCategories] = useState([]);
 
-  useEffect(() => {
-    const getCategories = async () => {
-      setLoading(true)
-      const categories = await fetchCourseCategories()
-      if (categories.length > 0) {
-        // console.log("categories", categories)
-        setCourseCategories(categories)
-      }
-      setLoading(false)
+ useEffect(() => {
+  const getCategories = async () => {
+    setLoading(true);
+    console.log("inside the categories");
+    const categories = await fetchCourseCategories();
+    if (categories.length > 0) {
+      console.log("categories", categories);
+      setCourseCategories(categories);
     }
+    console.log("inside the categories Pass");
+    setLoading(false);
+  };
+
+  if (editCourse && course) {
+    setValue("courseTitle", course.courseName);
+    setValue("courseShortDesc", course.courseDescription);
+    setValue("coursePrice", course.price);
+    setValue("courseTags", course.tag);
+    setValue("courseBenefits", course.whatYouWillLearn);
+    setValue("courseCategory", course.category);
+    setValue("courseRequirements", course.instructions);
+    setValue("courseImage", course.thumbnail);
+  }
+
+  getCategories();
+}, [editCourse, course]);  // safer if these change over time
 
 
-const handleImageUpload = (event)=>{
-const imageupload =  event.target.files
-}
-    // if form is in edit mode
-    if (editCourse) {
-      // console.log("data populated", editCourse)
-      setValue("courseTitle", course.courseName)
-      setValue("courseShortDesc", course.courseDescription)
-      setValue("coursePrice", course.price)
-      setValue("courseTags", course.tag)
-      setValue("courseBenefits", course.whatYouWillLearn)
-      setValue("courseCategory", course.category)
-      setValue("courseRequirements", course.instructions)
-      setValue("courseImage", course.thumbnail)
-    }
-    getCategories()
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+ const handleTags = (newTag) => {
+  setTags(prev => [...prev, newTag]); // Append the new tag
+  setValue("courseTags", [...Tag, newTag]); // Also update form state
+};
 
+  
   const isFormUpdated = () => {
     const currentValues = getValues()
     // console.log("changes after editing form values:", currentValues)
@@ -155,6 +159,10 @@ const imageupload =  event.target.files
     setLoading(false)
   }
 
+  function handleClick(){
+    console.log("Next is working in the console ")
+  }
+
   return (
     <form
   onSubmit={handleSubmit(onSubmit)}
@@ -224,22 +232,23 @@ const imageupload =  event.target.files
     <label className="text-sm font-medium text-richblack-5" htmlFor="courseCategory">
       Course Category <sup className="text-pink-400">*</sup>
     </label>
-    <select
-      id="courseCategory"
-      defaultValue=""
-      {...register("courseCategory", { required: true })}
-      className="w-full p-3 border rounded-md border-richblack-600 bg-richblack-900 text-richblack-5 placeholder-richblack-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-300"
-    >
-      <option value="" disabled>
-        Choose a Category
+   <select
+  id="courseCategory"
+  defaultValue=""
+  {...register("courseCategory", { required: true })}
+  className="w-full p-3 text-white border rounded-md border-richblack-600 bg-richblack-900 placeholder-richblack-400"
+>
+  <option value="">
+    Choose a Category
+  </option>
+  {!loading &&
+    courseCategories.map((category, indx) => (
+      <option key={indx} value={category._id} className="text-black bg-white">
+        {category.name}
       </option>
-      {!loading &&
-        courseCategories?.map((category, indx) => (
-          <option key={indx} value={category?._id}>
-            {category?.name}
-          </option>
-        ))}
-    </select>
+    ))}
+</select>
+
     {errors.courseCategory && (
       <span className="text-xs text-pink-400">Course category is required</span>
     )}
@@ -247,16 +256,24 @@ const imageupload =  event.target.files
 
   {/* Course Tags */}
 <div >
+
+<div className="flex flex-wrap gap-2 mb-2">
+        {Tag.map((tag, index) => (
+          <span
+            key={index}
+            className="px-3 py-1 text-sm text-white bg-pink-400 rounded-full"
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
   <div >
     <MuiChipsInput
       label="Tags"
-      name="courseTags"
-      placeholder="Enter Tags and press Enter"
-      register={register}
-      errors={errors}
-      setValue={setValue}
-      getValues={getValues}
-      className="w-full p-3 transition-all duration-200 border rounded-md border-richblack-600 bg-richblack-900 text-richblack-5 placeholder-richblack-400 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-300"
+  name="courseTags"
+  placeholder="Enter Tags and press Enter"
+  onChange={handleTags}
+  className="w-full p-3 transition-all duration-200 bg-white rounded-md text-richblack-5 placeholder-richblack-400"
     />
   </div>
   {errors.courseTags && (
@@ -316,6 +333,7 @@ const imageupload =  event.target.files
       </button>
     )}
     <IconBtn
+       onclick={handleClick}
       disabled={loading}
       text={!editCourse ? "Next" : "Save Changes"}
     >
