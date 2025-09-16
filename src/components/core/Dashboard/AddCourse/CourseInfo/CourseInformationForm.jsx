@@ -29,31 +29,31 @@ export default function CourseInformationForm() {
   const [courseCategories, setCourseCategories] = useState([]);
 
  useEffect(() => {
-  const getCategories = async () => {
-    setLoading(true);
-    console.log("inside the categories");
-    const categories = await fetchCourseCategories();
-    if (categories.length > 0) {
-      console.log("categories", categories);
-      setCourseCategories(categories);
+    const getCategories = async () => {
+      setLoading(true)
+      const categories = await fetchCourseCategories()
+      if (categories.length > 0) {
+        // console.log("categories", categories)
+        setCourseCategories(categories)
+      }
+      setLoading(false)
     }
-    console.log("inside the categories Pass");
-    setLoading(false);
-  };
+    // if form is in edit mode
+    if (editCourse) {
+      // console.log("data populated", editCourse)
+      setValue("courseTitle", course.courseName)
+      setValue("courseShortDesc", course.courseDescription)
+      setValue("coursePrice", course.price)
+      setValue("courseTags", course.tag)
+      setValue("courseBenefits", course.whatYouWillLearn)
+      setValue("courseCategory", course.category)
+      setValue("courseRequirements", course.instructions)
+      setValue("courseImage", course.thumbnail)
+    }
+    getCategories()
 
-  if (editCourse && course) {
-    setValue("courseTitle", course.courseName);
-    setValue("courseShortDesc", course.courseDescription);
-    setValue("coursePrice", course.price);
-    setValue("courseTags", course.tag);
-    setValue("courseBenefits", course.whatYouWillLearn);
-    setValue("courseCategory", course.category);
-    setValue("courseRequirements", course.instructions);
-    setValue("courseImage", course.thumbnail);
-  }
-
-  getCategories();
-}, [editCourse, course]);  // safer if these change over time
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
 
 
@@ -85,7 +85,7 @@ export default function CourseInformationForm() {
   //   handle next button click
   const onSubmit = async (data) => {
     // console.log(data)
-
+console.log("Form submitted with data:", data)
     if (editCourse) {
       // const currentValues = getValues()
       // console.log("changes after editing form values:", currentValues)
@@ -158,10 +158,9 @@ export default function CourseInformationForm() {
     }
     setLoading(false)
   }
-
-  function handleClick(){
-    console.log("Next is working in the console ")
-  }
+  // function handleClick(){
+  //   console.log("Next is working in the console ")
+  // }
 
   return (
     <form
@@ -333,7 +332,6 @@ export default function CourseInformationForm() {
       </button>
     )}
     <IconBtn
-       onclick={handleClick}
       disabled={loading}
       text={!editCourse ? "Next" : "Save Changes"}
     >
