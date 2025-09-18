@@ -1,18 +1,19 @@
-const Tags = require("../model/Category");
+const Category = require("../model/Category");
 const User = require("../model/User");
-const Course = require("../model/Course");
+const course = require("../model/Course");
 const {uploadImageTocloudinary}= require("../utilis/imageUploader");
 // create Course handler
 exports.createCourse = async(req,res)=>{
     try{
         // get data
         // createCourse.js
+        let tagDetails = [];
 console.log("In createCourse controller");
         console.log("Request Body:", req.body);
         const{courseName,courseDescription,whatYouWillLearn,price,tags}=req.body;
         // getthumbnails
-        //   const thumbnails = req.file?.path;;
-        // console.log("thumbnails are",thumbnails)
+           const thumbnails = req.body.thumbnails;
+         console.log("thumbnails are",thumbnails)
         //validations
         if(!courseName||!courseDescription||!whatYouWillLearn||!price||!tags){
             return res.status(400).json({
@@ -33,7 +34,20 @@ console.log("In createCourse controller");
            });
         }
         // check  given tag detail is valid or not
-       const tagDetails = await Tags.find({ name: { $in: tags } });
+      
+        if (typeof tags === "string") {
+  // If only one tag is passed (e.g. "Add")
+  tagDetails = [tags];
+} else if (Array.isArray(tags)) {
+  tagDetails = tags;
+} else {
+  return res.status(400).json({
+    success: false,
+    message: "Tags must be a string or array"
+  });
+}
+         
+    //    const tagDetails = await Tags.find({ name: { $in: tags } });
         // const tagDetail = await Tags.findById(tags);
         if(!tagDetails){
             return res.status(401).json({
@@ -41,19 +55,26 @@ console.log("In createCourse controller");
                 message:"Tagdetail is not found"
            });
         }
+       console.log("Any issue before the thumbnails ")
         // upload Image to cloudinary
-        // const thumbnailsImage = await uploadImageTocloudinary( thumbnails,process.env.FOLDER_NAME);
-        // create an entry for new courses
-        const newCourse = await Course.create({
+        const thumbnailImage = await uploadImageTocloudinary (
+             thumbnails,
+             process.env.FOLDER_NAME
+           )
+        //  create an entry for new courses
+          console.log("Any issue in the createcourse");
+        const newCourse = await course.create({
             courseName,
             courseDescription,
             whatYouWillLearn:whatYouWillLearn,
             instructor:instructorDetail._id,
             price,
             tags:tagDetails,
-            // thumbnails:thumbnailsImage,
+             thumbnails:thumbnailImage,
 
         });
+        console.log("new Course",newCourse);
+          console.log("Issue is Resolved ")
         // add the new cousre to the user  Schema Instructor
         await User.findByIdAndUpdate({
            _id:instructorDetail._id },
@@ -68,7 +89,7 @@ console.log("In createCourse controller");
     }catch(error){
         return res.status(401).json({
             success:false,
-            message:error.message
+            message:"CreateCourse Controller is not working "
        });
     }
 }
