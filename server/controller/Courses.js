@@ -1,30 +1,17 @@
-const Tags = require("../model/Category");
+const Category = require("../model/Category");
 const User = require("../model/User");
-const Course = require("../model/Course");
-const {uploadImageTocloudinary}= require("../utilis/imageUploader");
+const course = require("../model/Course")
+ const {uploadImageTocloudinary}= require("../utilis/imageUploader");
 // create Course handler
 exports.createCourse = async(req,res)=>{
-    try{
-        // get data
-        // createCourse.js
-console.log("In createCourse controller");
-        console.log("Request Body:", req.body);
-        const{courseName,courseDescription,whatYouWillLearn,price,tags}=req.body;
-        // getthumbnails
-        //   const thumbnails = req.file?.path;;
-        // console.log("thumbnails are",thumbnails)
-        //validations
-        if(!courseName||!courseDescription||!whatYouWillLearn||!price||!tags){
-            return res.status(400).json({
-                 success:false,
-                 message:"All Data required to fullfill"
-            });
-
-        }
-        // check for instructor
-        const userId = req.User.id;
+  try{
+  console.log("Inside the createCourseController")
+  console.log("req Body",req.body);
+  const {courseName,courseDescription,whatYouWillLearn,price,tags} = req.body
+          //check for the instructor 
+   const userId = req.User.id;
         console.log("UserId Controller", userId)
-        const instructorDetail=await User.findById(userId);
+         const instructorDetail=await User.findById(userId);
         console.log("Instructor Detail",instructorDetail);
         if(!instructorDetail){
             return res.status(401).json({
@@ -32,28 +19,52 @@ console.log("In createCourse controller");
                 message:"Instructor is not found"
            });
         }
-        // check  given tag detail is valid or not
-       const tagDetails = await Tags.find({ name: { $in: tags } });
-        // const tagDetail = await Tags.findById(tags);
-        if(!tagDetails){
+//TAGS
+ if (typeof tags === "string") {
+  // If only one tag is passed (e.g. "Add")
+  tagDetails = [tags];
+} else if (Array.isArray(tags)) {
+  tagDetails = tags;
+} else {
+  return res.status(400).json({
+    success: false,
+    message: "Tags must be a string or array"
+  });
+}
+ if(!tagDetails){
             return res.status(401).json({
                 success:false,
                 message:"Tagdetail is not found"
            });
         }
-        // upload Image to cloudinary
-        // const thumbnailsImage = await uploadImageTocloudinary( thumbnails,process.env.FOLDER_NAME);
-        // create an entry for new courses
-        const newCourse = await Course.create({
+
+
+//THUMBNAILS
+console.log("req.file",req.file)
+ if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Thumbnail image is required",
+      });
+    }
+
+const thumbnailImage = await uploadImageTocloudinary(
+ req.file.path,
+      process.env.FOLDER_NAME
+);
+console.log("thumbnailImage",thumbnailImage);
+
+
+    const newCourse = await course.create({
             courseName,
             courseDescription,
-            whatYouWillLearn:whatYouWillLearn,
-            instructor:instructorDetail._id,
+            whatYouWillLearn,
             price,
-            tags:tagDetails,
-            // thumbnails:thumbnailsImage,
-
+            tags,
+             thumbnails: thumbnailImage,
         });
+            console.log("new Course",newCourse);
+            console.log("Issue is Resolved ")
         // add the new cousre to the user  Schema Instructor
         await User.findByIdAndUpdate({
            _id:instructorDetail._id },
@@ -65,12 +76,13 @@ console.log("In createCourse controller");
             success:true,
             message:"Courses Created Successfully"
        });
-    }catch(error){
-        return res.status(401).json({
+      }catch(error){
+         return res.status(401).json({
             success:false,
-            message:error.message
+            message:"CreateCourse Controller is not working "
        });
-    }
+      }
+
 }
 // create getAll course handler
 exports.getAllCourses = async (req, res) => {

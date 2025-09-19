@@ -8,6 +8,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.483.0",
     "mui-chips-input": "^7.0.1",
+    "multer": "^2.0.2",
     "otp-input-react": "^0.3.0",
     "react": "^18.2.0",
     "react-content-loader": "^7.0.2",

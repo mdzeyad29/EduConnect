@@ -1,62 +1,35 @@
-const mongoose = require("mongoose");
+const mongoose = require("mongoose")
 
-const courseSchema = new mongoose.Schema({
-  Name:{
-  type:String,
-  required:true,
-  },
-courseDescription:{
-type:String,
- required:true,
-},
-instructor:{
-type:String,
- required:true,
-},
-WhatYouWillLearn:{
-type:String,
- required:true,
-},
-courseContent:{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:"Section",
-     required:true,
-},
-ratingAndReviews:{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:"viewandrating",
-     required:true,
-},
-price:{
-type:Number,
- required:true,
-},
-thumbnails:{
- type:String,
-  required:true,
-},
-tags:{
-  type:[String],
-  required:true
-  
-},
-category:{
-type:mongoose.Schema.Types.ObjectId,
-ref:"Category",
- required:true,
-},
-studentsEnrolled:[{
-  type:mongoose.Schema.Types.ObjectId,
-  required:true,
-  ref:"User"
-}],
-instructions:{
-  type:[String]
-},
-status:{
-  type:String,
-  enum:["Draft","Published"],
-   required:true,
-}
-});
-module.exports = mongoose.models.course || mongoose.model("course", courseSchema);
+const courseSchema =new mongoose.Schema(
+  {
+    courseName:{
+      type:String,
+      required:true
+    },
+    courseDescription:{
+       type:String,
+      required:true
+    },
+    whatYouWillLearn:{
+       type:String,
+      required:true
+    },
+    price:{
+      type: Number,
+       required: true
+    },
+     tags: { 
+      type: [String], 
+      required: true 
+    },
+     thumbnail: {
+      type: String,   // store Cloudinary URL
+      required: true
+    },
+
+  }
+
+)
+
+module.exports = mongoose.models.course || mongoose.model("course", courseSchema)
+
