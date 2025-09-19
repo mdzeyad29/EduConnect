@@ -6,6 +6,10 @@ const profileRoutes = require("./routes/Profile");
 const paymentRoutes = require("./routes/Payment");
 const courseRoutes = require("./routes/Course");
 
+
+app.use(express.urlencoded({ extended: true }));
+
+
 const database = require("./config/database");
 const cookieParser = require("cookie-parser");
 // if we want backend entertain frontend then use cors
@@ -20,6 +24,8 @@ const PORT = process.env.PORT || 4000;
 
 //database connect
 database.connect();
+
+
 
 app.use(express.json());
 app.use(cookieParser());
@@ -62,3 +68,5 @@ app.post('/', (req, res) => {
 app.listen(PORT, () => {
 	console.log(`App is running at ${PORT}`)
 })
+
+

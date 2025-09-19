@@ -82,12 +82,25 @@ export const fetchCourseCategories = async () => {
 }
 
 // add the course details
-export const addCourseDetails = async (data, token) => {
+export const addCourseDetails = async (courseData, token) => {
   let result = null
   const toastId = toast.loading("Loading...")
+  
   try {
-    const response = await apiConnector("POST", CREATE_COURSE_API, data, {
-      "Content-Type": "multipart/form-data",
+     const formData = new FormData()
+    formData.append("courseName", courseData.courseName)
+    formData.append("courseDescription", courseData.courseDescription)
+    formData.append("price", courseData.price)
+
+     if (courseData.thumbnail) {
+      formData.append("thumbnail", courseData.thumbnail) // file object
+    }
+    if (courseData.video) {
+      formData.append("video", courseData.video) // file object
+    }
+
+    const response = await apiConnector("POST", CREATE_COURSE_API, formData, {
+     "Content-Type": "multipart/form-data",
       Authorization: `Bearer ${token}`,
     })
     console.log("CREATE COURSE API RESPONSE............", response)

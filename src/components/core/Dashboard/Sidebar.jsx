@@ -8,7 +8,7 @@ import ConfirmationModal from '../../common/ConfirmationModal'
 import SidebarLink from './SidebarLink'
 
 export const Sidebar = () => {
-
+  
     const {user, loading :profileLoading } = useSelector((state)=>state.profile);
     const { loading :authLoading } = useSelector((state)=>state.auth);
      // to keep track of confirmation modal
