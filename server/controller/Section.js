@@ -1,10 +1,12 @@
-const Section = require("../model/section");
-const Course = require("../model/course");
+const courseSchema = require("../model/Course");
+const sectionSchema = require("../model/section");
 
 exports.createSectionCourse = async(req,res)=>{
     try{
         // data fetch
         const {sectionName,courseId} = req.body;
+        console.log("Inside the createSectionCourse")
+        console.log("createSectionCourse Request Body",req.body)
         // data validation
         if(!sectionName|| ! courseId){
             return res.status(400).json({
@@ -13,9 +15,9 @@ exports.createSectionCourse = async(req,res)=>{
             })
         }
         // create section
-        const newSection =  await Section.create({sectionName});
+        const newSection =  await sectionSchema.create({sectionName});
         // update course with objectID
- const updateDetail = await Course.findByIdAndUpdate(
+ const updateDetail = await courseSchema.findByIdAndUpdate(
     courseId,
     {
         $push:{
