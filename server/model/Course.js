@@ -22,7 +22,7 @@ const courseSchema =new mongoose.Schema(
       type: [String], 
       required: true 
     },
-     thumbnail: {
+     thumbnails: {
       type: String,   // store Cloudinary URL
       required: true
     },

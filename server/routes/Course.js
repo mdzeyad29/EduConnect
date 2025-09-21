@@ -1,7 +1,6 @@
 // Import the required modules
 const express = require("express")
 const router = express.Router()
-const upload = require("../middleware/multer")
 // Import the Controllers
 
 // Course Controllers Import
@@ -42,6 +41,7 @@ const {
 
 // Importing Middlewares
 const { auth, isInstructor, isStudent, isAdmin } = require("../middleware/Auth")
+const upload = require("../middleware/multer")
 
 // ********************************************************************************************************
 //                                      Course routes
