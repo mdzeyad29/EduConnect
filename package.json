@@ -5,7 +5,9 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",
     "axios": "^1.7.2",
+    "cloudinary": "^2.7.0",
     "clsx": "^2.1.1",
+    "express-fileupload": "^1.5.2",
     "lucide-react": "^0.483.0",
     "mui-chips-input": "^7.0.1",
     "multer": "^2.0.2",

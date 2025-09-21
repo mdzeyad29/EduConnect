@@ -1,7 +1,6 @@
 // Import the required modules
 const express = require("express")
 const router = express.Router()
-const upload = require("../middleware/multer")
 // Import the Controllers
 
 // Course Controllers Import
@@ -42,6 +41,7 @@ const {
 
 // Importing Middlewares
 const { auth, isInstructor, isStudent, isAdmin } = require("../middleware/Auth")
+const upload = require("../middleware/multer")
 
 // ********************************************************************************************************
 //                                      Course routes
@@ -49,22 +49,9 @@ const { auth, isInstructor, isStudent, isAdmin } = require("../middleware/Auth")
 // Courses can Only be Created by Instructors
 router.post("/createCourse", auth,
    isInstructor,
-  // (req, res, next) => {
-  //   console.log("Incoming headers:", req.headers["content-type"]);
-  //   next();
-  // },
- upload.single('thumbnails'), function (req, res) {
-  // req.file is the name of your file in the form above, here 'uploaded_file'
-  // req.body will hold the text fields, if there were any
-  console.log(req.file, req.body)
-},
     createCourse)
 //Add a Section to a Course
 router.post("/addSection", auth, isInstructor,
-       upload.fields([
-  { name: "thumbnail", maxCount: 1 },
-  { name: "video", maxCount: 1 },
-]),
   createSectionCourse)
 // Update a Section
 router.post("/updateSection", auth, isInstructor,upDateCourse)

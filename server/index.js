@@ -9,6 +9,7 @@ const courseRoutes = require("./routes/Course");
 
 app.use(express.urlencoded({ extended: true }));
 
+app.use(express.static('public'));
 
 const database = require("./config/database");
 const cookieParser = require("cookie-parser");
@@ -17,6 +18,7 @@ const cors = require("cors");
 const {cloudinaryConnect } = require("./config/cloudinary");
 const fileUpload = require("express-fileupload");
 
+
 const dotenv = require("dotenv");
 const { showAllCategories } = require("./controller/Category");
 dotenv.config();
@@ -24,7 +26,8 @@ const PORT = process.env.PORT || 4000;
 
 //database connect
 database.connect();
-
+//cloudinary Connection
+cloudinaryConnect();
 
 
 app.use(express.json());
@@ -42,9 +45,6 @@ app.use(
 		tempFileDir:"/tmp",
 	})
 )
-
-//cloudinary connection
-cloudinaryConnect();
 
 //routes
 app.use("/api/v1/auth", userRoutes);

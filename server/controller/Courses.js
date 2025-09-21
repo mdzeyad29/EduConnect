@@ -1,7 +1,7 @@
 const Category = require("../model/Category");
 const User = require("../model/User");
 const course = require("../model/Course")
- const {uploadImageTocloudinary}= require("../utilis/imageUploader");
+ const { uploadImageToCloudinary}= require("../utilis/imageUploader");
 // create Course handler
 exports.createCourse = async(req,res)=>{
   try{
@@ -40,28 +40,29 @@ exports.createCourse = async(req,res)=>{
 
 
 //THUMBNAILS
-console.log("req.file",req.file)
- if (!req.file) {
+console.log("req.file",req.files)
+ if (!req.files) {
       return res.status(400).json({
         success: false,
         message: "Thumbnail image is required",
       });
     }
 
-const thumbnailImage = await uploadImageTocloudinary(
- req.file.path,
+const file = req.files.thumbnails; // get the actual file
+const thumbnailImage = await uploadImageToCloudinary(
+ file,
       process.env.FOLDER_NAME
 );
 console.log("thumbnailImage",thumbnailImage);
 
-
+console.log("issue is here 2")
     const newCourse = await course.create({
             courseName,
             courseDescription,
             whatYouWillLearn,
             price,
             tags,
-             thumbnails: thumbnailImage,
+             thumbnails:  thumbnailImage.secure_url,
         });
             console.log("new Course",newCourse);
             console.log("Issue is Resolved ")
@@ -76,6 +77,8 @@ console.log("thumbnailImage",thumbnailImage);
             success:true,
             message:"Courses Created Successfully"
        });
+
+       console.log("issue is resolved ")
       }catch(error){
          return res.status(401).json({
             success:false,
