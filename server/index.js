@@ -9,6 +9,7 @@ const courseRoutes = require("./routes/Course");
 
 app.use(express.urlencoded({ extended: true }));
 
+app.use(express.static('public'));
 
 const database = require("./config/database");
 const cookieParser = require("cookie-parser");

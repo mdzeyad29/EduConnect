@@ -165,7 +165,7 @@ console.log("Form submitted with data:", data)
   return (
     <form
   onSubmit={handleSubmit(onSubmit)}
-  action="/profile" method="post" enctype="multipart/form-data"
+  action="/upload" method="post" enctype="multipart/form-data"
   className="max-w-4xl p-8 mx-auto space-y-10 border rounded-lg shadow-lg border-richblack-700 bg-richblack-800"
 >
   <h2 className="mb-8 text-2xl font-bold text-center text-richblack-5">
@@ -282,8 +282,6 @@ console.log("Form submitted with data:", data)
     </span>
   )}
 </div>
-
-
   {/* Course Thumbnail Image */}
   <div>
     <input
