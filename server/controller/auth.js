@@ -12,7 +12,7 @@ exports.otpSend =  async(req,res)=>{
          const {email}= req.body
           // check for existing 
          const checkEmail =await  User.findOne({email});
-         console.log("this is emailcheck",checkEmail);
+        //  console.log("this is emailcheck",checkEmail);
          if(checkEmail){
             return res.status(500).json({
                 success:false,
@@ -25,7 +25,7 @@ exports.otpSend =  async(req,res)=>{
           specialChars:false
        })
 
-       console.log("otp is generate  this is the otp",otp)
+    //    console.log("otp is generate  this is the otp",otp)
        // check unique otp or not 
        let existingOTP = await OTP.findOne({ otp });
        while (existingOTP) {
@@ -37,14 +37,14 @@ exports.otpSend =  async(req,res)=>{
            });
            existingOTP = await OTP.findOne({ otp });
        }
-         console.log(existingOTP)
+        //  console.log(existingOTP)
        
 
        
        // Create a new entry in the OTP collection
        const otpPayload = { email, otp };
        const otpBody = await OTP.create(otpPayload);
-       console.log("Stored OTP:", otpBody);
+    //    console.log("Stored OTP:", otpBody);
 
          res.status(200).json({
             success:true,
@@ -74,7 +74,7 @@ exports.signUp = async (req, res) => {
 			contactnumber,
 			otp,
 		} = req.body;
-console.log("Received signup body:", req.body);
+// console.log("Received signup body:", req.body);
 		// Check if all required fields are provided
 		if (
 			!firstName ||
@@ -199,7 +199,7 @@ exports.logIn = async(req,res)=>{
 	
      user.token=token;
 	 user.password=undefined
-	 console.log("here is the token for login forn and send ", token)
+	//  console.log("here is the token for login forn and send ", token)
      await User.findByIdAndUpdate(user._id, { token: token });
      const option = {
         expires: new Date(Date.now()+3*24*60*60*1000),
@@ -276,7 +276,7 @@ exports.changePassword = async (req, res) => {
 					`Password updated successfully for ${updatedUserDetails.firstName} ${updatedUserDetails.lastName}`
 				)
 			);
-			console.log("Email sent successfully:", emailResponse.response);
+			// console.log("Email sent successfully:", emailResponse.response);
 		} catch (error) {
 			// If there's an error sending the email, log the error and return a 500 (Internal Server Error) error
 			console.error("Error occurred while sending email:", error);

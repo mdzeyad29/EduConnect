@@ -49,7 +49,7 @@ const { auth, isInstructor, isStudent, isAdmin } = require("../middleware/Auth")
 router.post("/createCourse", auth,
    isInstructor,
     createCourse)
-//Add a Section to a Course
+//Add a Section to a Course api/v1/Course
 router.post("/addSection", auth, isInstructor,
   createSectionCourse)
 // Update a Section

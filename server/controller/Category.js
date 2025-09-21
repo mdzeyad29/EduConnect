@@ -19,7 +19,7 @@ exports.Category = async(req,res)=>{
             name:name,
             description:description
         })
-        console.log(tagsDetails);
+        // console.log(tagsDetails);
         return res.status(200).json({
             success:true,
             message:"Tags Created Successfully"

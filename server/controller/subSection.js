@@ -1,18 +1,19 @@
 const subSection = require("../model/SubSection");
 const Section = require("../model/section");
-const { uploadImageTocloudinary } = require("../utilis/imageUploader");
+const { uploadImageToCloudinary } = require("../utilis/imageUploader");
 
-
-
-
-
+// uploadImageToCloudinary
 //   createSubSection,
 exports.createSubSection = async(req,res)=>{
     try{
    // data fetch 
    const {title,timeduration,sectionId,description}= req.body
     //extract video// files
+    console.log("Inside the createSubSection")
+    console.log("Request Body is this ",req.body)
+    console.log("Start Issue")
    const video = req.files.videoFile
+   console.log("video is this ",video)
    // validation
    if(!title||!timeduration||!description||!video||!sectionId){
     return res.status(400).json({
@@ -22,28 +23,26 @@ exports.createSubSection = async(req,res)=>{
    }
   
    // store in db (cloudinary)//recieve secureUrl
-const uploadDetail = await  uploadImageTocloudinary(video);
+const uploadDetail = await uploadImageToCloudinary(video);
    //create subsection
    const createSectionDetail =  await  subSection.create({
     title:title,
     description:description,
     timeDuration:timeduration,
-    VideoUrl:uploadDetail.secure_url,
+    videoFile:uploadDetail.secure_url,
    })
    // update subsection with objectId
-   const updateSubSection = Section.findByIdAndUpdate({_id:sectionId},
+   const updateSubSection = await Section.findByIdAndUpdate(
+    {_id:sectionId},
     {
         $push:{
        subSection:createSectionDetail._id,
         },
-        
-    },{new:true});
+    },{new:true}).populate("subSection");
     //hw logupdate Section here and adding populate query
+    console.log("updated Section",updateSubSection)
    //return response 
-   return res.status(500).json({
-    success:true,
-    message:"Sub are Created Successfully"
-   })
+  return res.status(200).json({ success: true, data: updateSubSection })
     }catch(error){
          console.log(error);
          return res.status(501).json({
@@ -77,7 +76,7 @@ exports.updateSubSection = async (req, res) => {
       }
       if (req.files && req.files.video !== undefined) {
         const video = req.files.video
-        const uploadDetails = await uploadImageTocloudinary(
+        const uploadDetails = await  uploadImageToCloudinary(
           video,
           process.env.FOLDER_NAME
         )
