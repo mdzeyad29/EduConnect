@@ -11,7 +11,9 @@ exports.createCourse = async(req,res)=>{
           //check for the instructor 
    const userId = req.User.id;
         console.log("UserId Controller", userId)
-         const instructorDetail=await User.findById(userId);
+         const instructorDetail=await User.findById(userId, {
+      accountType: "Instructor",
+    });
         console.log("Instructor Detail",instructorDetail);
         if(!instructorDetail){
             return res.status(401).json({
@@ -60,6 +62,7 @@ console.log("issue is here 2")
             courseName,
             courseDescription,
             whatYouWillLearn,
+            Instructor:instructorDetail._id,
             price,
             tags,
              thumbnails:  thumbnailImage.secure_url,
@@ -75,10 +78,8 @@ console.log("issue is here 2")
            // update tags Schema HW
            return res.status(200).json({
             success:true,
-            message:"Courses Created Successfully"
+           data:newCourse,
        });
-
-       console.log("issue is resolved ")
       }catch(error){
          return res.status(401).json({
             success:false,
@@ -122,21 +123,21 @@ exports.getCourseDetails = async (req,res)=>{
         //get id
     const {courseId} = req.body;
     //find courseDetail
-    const courseDetail  = await Course.find(
+    const courseDetail  = await course.find(
         {_id:courseId})
         .populate(
             {
-           path:"instructor",
+           path:"Instructor",
            populate:{
-            path:"additionaldetails"
+            path:"additionalDetails"
            }
         })
-        .populate("ratingAndReviews")
-        .populate("category")
+        // .populate("ratingAndReviews")
+        // .populate("category")
         .populate({
             path:"courseContent",
             populate:{
-                path:"SubSection",
+                path:"subSection",
             },
         })
         .exec();

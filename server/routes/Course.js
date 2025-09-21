@@ -41,7 +41,6 @@ const {
 
 // Importing Middlewares
 const { auth, isInstructor, isStudent, isAdmin } = require("../middleware/Auth")
-const upload = require("../middleware/multer")
 
 // ********************************************************************************************************
 //                                      Course routes

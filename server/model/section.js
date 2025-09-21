@@ -10,4 +10,4 @@ subSection:{
   ref:"SubSection"
 }
 });
-module.exports = mongoose.model(" Section", section);
+module.exports = mongoose.model("Section",section);

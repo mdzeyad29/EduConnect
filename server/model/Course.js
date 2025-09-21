@@ -10,6 +10,23 @@ const courseSchema =new mongoose.Schema(
        type:String,
       required:true
     },
+    Instructor: {
+		type: mongoose.Schema.Types.ObjectId,
+		required: true,
+		ref: "user",
+	},
+  courseContent: [
+		{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Section",
+		},
+	],
+  ratingAndReviews: [
+		{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "RatingAndReview",
+		},
+	],
     whatYouWillLearn:{
        type:String,
       required:true
