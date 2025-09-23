@@ -31,6 +31,8 @@ const uploadDetail = await uploadImageToCloudinary(video);
     timeDuration:timeduration,
     videoFile:uploadDetail.secure_url,
    })
+
+   console.log("createSectionDetail",createSectionDetail)
    // update subsection with objectId
    const updateSubSection = await Section.findByIdAndUpdate(
     {_id:sectionId},
