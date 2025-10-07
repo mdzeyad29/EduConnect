@@ -1,7 +1,8 @@
 const User = require("../model/User");
 const OTP = require("../model/otp");
 const  otpGenerator = require("otp-generator");
-const bcrypt = require("bcrypt");
+// Use bcryptjs (pure JS) to avoid native binary addon issues on some environments
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Profile = require("../model/Profile")
 require("dotenv").config();
@@ -123,8 +124,8 @@ exports.signUp = async (req, res) => {
 			});
 		}
 
-		// Hash the password
-		const hashedPassword = await bcrypt.hash(password, 10);
+	// Hash the password (bcryptjs sync)
+	const hashedPassword = bcrypt.hashSync(password, 10);
 
 		// Determine if the account should be approved based on the account type
 		const approved = accountType === "Instructor" ? false : true;
@@ -190,7 +191,7 @@ exports.logIn = async(req,res)=>{
             id:user._id,
             accountType:user.accountType,
         }
-        if( await bcrypt.compare(password,user.password)){
+	if (bcrypt.compareSync(password, user.password)) {
             // if password is matched
            // generate token
      let token = jwt.sign(payload,process.env.JWT_SECRET,{
@@ -239,7 +240,7 @@ exports.changePassword = async (req, res) => {
 		const { oldPassword, newPassword, confirmNewPassword } = req.body;
 
 		// Validate old password
-		const isPasswordMatch = await bcrypt.compare(
+		const isPasswordMatch = bcrypt.compareSync(
 			oldPassword,
 			userDetails.password
 		);
@@ -260,7 +261,7 @@ exports.changePassword = async (req, res) => {
 		}
 
 		// Update password
-		const encryptedPassword = await bcrypt.hash(newPassword, 10);
+	const encryptedPassword = bcrypt.hashSync(newPassword, 10);
 		const updatedUserDetails = await User.findByIdAndUpdate(
 			req.user.id,
 			{ password: encryptedPassword },

@@ -1,6 +1,7 @@
 const User = require("../model/User");
 const mailSender = require("../utilis/mailSender");
-const bcrypt = require("bcrypt");
+// Use bcryptjs (pure JS) to avoid native binary addon issues on some environments
+const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 
 // Forget Password

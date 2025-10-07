@@ -1,8 +1,10 @@
 const mongoose = require("mongoose");
 const {instance} = require("../config/razorpay");
-const Course = require("../model/course");
+// require Course with correct case (filesystem is case-sensitive)
+const Course = require("../model/Course");
 const user = require("../model/User");
 const mailSender = require("../utilis/mailSender");
+const crypto = require("crypto");
 
 // capture the payment  and initiate the razorpay order
 exports.capturePayment = async(req,res)=>{
@@ -103,12 +105,12 @@ exports.verifySignature = async(req,res)=>{
         {new:true}
 
     );
-    if(!enrolled){
-       res.status(401).json({
-        success:false,
-        message:"course not found",
-       })
-    }
+     if(!enrolledCourse){
+         return res.status(401).json({
+          success:false,
+          message:"course not found",
+         })
+     }
    console.log(enrolledCourse);
    // find the course and update in student id 
    const enrolledStudent = await user.findOneAndUpdate(
