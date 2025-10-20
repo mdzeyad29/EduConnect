@@ -101,7 +101,9 @@ const SubSectionModal = ({
         //ADD
 
         const formData = new FormData();
-        formData.append("sectionId", modalData);
+        // modalData can be either an object from add flow or a subSection object from edit/view
+        const sectionId = add ? modalData.sectionId : modalData.sectionId;
+        formData.append("sectionId", sectionId);
         formData.append("title", data.lectureTitle);
         formData.append("description", data.lectureDesc);
         formData.append("video", data.lectureVideo);
@@ -125,6 +127,9 @@ const SubSectionModal = ({
         <div>
             <div>
                 <p>{view && "Viewing"} {add && "Adding"} {edit && "Editing"} Lecture</p>
+                {add && (
+                  <p className="text-sm text-richblack-200">Section: {modalData.sectionName}</p>
+                )}
                 <button onClick={() => (!loading ? setModalData(null): {})}>
                     <RxCross1 />
                 </button>

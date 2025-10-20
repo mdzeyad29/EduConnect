@@ -17,21 +17,32 @@ exports.createSectionCourse = async(req,res)=>{
         // create section
         const newSection =  await sectionSchema.create({sectionName});
         // update course with objectID
- const updateDetail = await courseSchema.findByIdAndUpdate(
-    courseId,
-    {
-        $push:{
-          courseContent:newSection._id,   
-        }
-    },
-    {new:true}
- );
- //    HW ::use populate to replace section and sub section both in updated course 
+        await courseSchema.findByIdAndUpdate(
+          courseId,
+          {
+            $push: {
+              courseContent: newSection._id,
+            },
+          },
+          { new: true }
+        )
+
+        // populate sections and subSections for UI
+        const updateDetail = await courseSchema
+          .findById(courseId)
+          .populate({
+            path: "courseContent",
+            populate: {
+              path: "subSection",
+            },
+          })
+          .exec()
+
         // return response
         return res.status(200).json({
-           success:true,
-            message:"Course SuccessFully created",
-            updateDetail
+          success: true,
+          message: "Course section created",
+          updateDetail,
         })
 
     }catch(error){
@@ -56,13 +67,30 @@ exports.upDateCourse = async(req,res)=>{
             })
         }
         // update data
-        const section = await Section.findByIdAndUpdate( sectionId,{sectionName},{new:true});
-    
-        // return response
-        return res.status(200).json({
-            success:true,
-            message:"SuccessFully Update The Course Section"
+        await sectionSchema.findByIdAndUpdate(sectionId, { sectionName }, { new: true })
+
+        // optionally return updated/populated course if courseId provided
+        const { courseId } = req.body
+        if (courseId) {
+          const updateDetail = await courseSchema
+            .findById(courseId)
+            .populate({
+              path: "courseContent",
+              populate: { path: "subSection" },
+            })
+            .exec()
+          return res.status(200).json({
+            success: true,
+            message: "Section updated",
+            updateDetail,
           })
+        }
+
+        // fallback minimal response
+        return res.status(200).json({
+          success: true,
+          message: "Section updated",
+        })
     }catch(error){
         console.log(error);
         return  res.status(500).json({
@@ -72,22 +100,45 @@ exports.upDateCourse = async(req,res)=>{
     }
 }
 
-exports.deleteSection = async(req,res)=>{
-   try{
-     // get id  : : assuming that we are sending a id in params
-  const {sectionId} = req.paramas;
-     // find by id and delete
-     const deleteSection = await Section.findByIdAndDelete({sectionId});
-     // return response
-     return res.status(200).json({
-        success:true,
-        message:"Course are Deleted Successfully"
-     })
-   }catch(error){
-    console.log(error);
-    return res.status(500).json({
-    success:false,
-    message:"Unable to delete,please try again"    
+exports.deleteSection = async (req, res) => {
+  try {
+    const { sectionId, courseId } = req.body
+    if (!sectionId || !courseId) {
+      return res.status(400).json({
+        success: false,
+        message: "sectionId and courseId are required",
+      })
+    }
+    // remove section id from course
+    await courseSchema.findByIdAndUpdate(
+      courseId,
+      { $pull: { courseContent: sectionId } },
+      { new: true }
+    )
+
+    // delete the section
+    await sectionSchema.findByIdAndDelete(sectionId)
+
+    // return updated/populated course
+    const updateDetail = await courseSchema
+      .findById(courseId)
+      .populate({
+        path: "courseContent",
+        populate: { path: "subSection" },
+      })
+      .exec()
+
+    return res.status(200).json({
+      success: true,
+      message: "Section deleted",
+      updateDetail,
     })
-   }
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({
+      success: false,
+      message: "Unable to delete, please try again",
+      error: error.message,
+    })
+  }
 }
