@@ -16,7 +16,6 @@ const cookieParser = require("cookie-parser");
 // if we want backend entertain frontend then use cors
 const cors = require("cors");
 const {cloudinaryConnect } = require("./config/cloudinary");
-const fileUpload = require("express-fileupload");
 
 
 const dotenv = require("dotenv");
@@ -39,12 +38,7 @@ app.use(
 	})
 )
 
-app.use(
-	fileUpload({
-		useTempFiles:true,
-		tempFileDir:"/tmp",
-	})
-)
+// Removed express-fileupload; multer is used on specific routes
 
 //routes
 app.use("/api/v1/auth", userRoutes);

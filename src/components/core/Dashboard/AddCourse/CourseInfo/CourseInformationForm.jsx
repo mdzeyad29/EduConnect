@@ -44,7 +44,7 @@ export default function CourseInformationForm() {
       setValue("courseTitle", course.courseName)
       setValue("courseShortDesc", course.courseDescription)
       setValue("coursePrice", course.price)
-      setValue("courseTags", course.tag)
+      setValue("courseTags", course.tags)
       setValue("courseBenefits", course.whatYouWillLearn)
       setValue("courseCategory", course.category)
       setValue("courseRequirements", course.instructions)
@@ -57,9 +57,9 @@ export default function CourseInformationForm() {
 
 
 
- const handleTags = (newTag) => {
-  setTags(prev => [...prev, newTag]); // Append the new tag
-  setValue("courseTags", [...Tag, newTag]); // Also update form state
+ const handleTags = (newTags) => {
+  setTags(newTags); // Update tags state
+  setValue("courseTags", newTags); // Update form state
 };
 
   
@@ -70,7 +70,7 @@ export default function CourseInformationForm() {
       currentValues.courseTitle !== course.courseName ||
       currentValues.courseShortDesc !== course.courseDescription ||
       currentValues.coursePrice !== course.price ||
-      currentValues.courseTags.toString() !== course.tag.toString() ||
+      currentValues.courseTags.toString() !== course.tags.toString() ||
       currentValues.courseBenefits !== course.whatYouWillLearn ||
       currentValues.courseCategory._id !== course.category._id ||
       currentValues.courseRequirements.toString() !==
@@ -84,8 +84,10 @@ export default function CourseInformationForm() {
 
   //   handle next button click
   const onSubmit = async (data) => {
-    // console.log(data)
-console.log("Form submitted with data:", data)
+    console.log("Form submitted with data:", data)
+    console.log("Form data keys:", Object.keys(data))
+    console.log("Course image file:", data.courseImage)
+    console.log("Course tags:", data.courseTags)
     if (editCourse) {
       // const currentValues = getValues()
       // console.log("changes after editing form values:", currentValues)
@@ -105,8 +107,8 @@ console.log("Form submitted with data:", data)
         if (currentValues.coursePrice !== course.price) {
           formData.append("price", data.coursePrice)
         }
-        if (currentValues.courseTags.toString() !== course.tag.toString()) {
-          formData.append("tag", JSON.stringify(data.courseTags))
+        if (currentValues.courseTags.toString() !== course.tags.toString()) {
+          formData.append("tags", JSON.stringify(data.courseTags))
         }
         if (currentValues.courseBenefits !== course.whatYouWillLearn) {
           formData.append("whatYouWillLearn", data.courseBenefits)
@@ -124,7 +126,7 @@ console.log("Form submitted with data:", data)
           )
         }
         if (currentValues.courseImage !== course.thumbnail) {
-          formData.append("thumbnailImage", data.courseImage)
+          formData.append("thumbnails", data.courseImage[0])
         }
         // console.log("Edit Form data: ", formData)
         setLoading(true)
@@ -144,12 +146,18 @@ console.log("Form submitted with data:", data)
     formData.append("courseName", data.courseTitle)
     formData.append("courseDescription", data.courseShortDesc)
     formData.append("price", data.coursePrice)
-    formData.append("tag", JSON.stringify(data.courseTags))
+    formData.append("tags", JSON.stringify(data.courseTags))
     formData.append("whatYouWillLearn", data.courseBenefits)
     formData.append("category", data.courseCategory)
     formData.append("status", COURSE_STATUS.DRAFT)
     formData.append("instructions", JSON.stringify(data.courseRequirements))
-    formData.append("thumbnailImage", data.courseImage)
+    formData.append("thumbnails", data.courseImage[0])
+    
+    // Debug FormData contents
+    console.log("FormData contents:")
+    for (let [key, value] of formData.entries()) {
+      console.log(key, ":", value)
+    }
     setLoading(true)
     const result = await addCourseDetails(formData, token)
     if (result) {
@@ -165,7 +173,6 @@ console.log("Form submitted with data:", data)
   return (
     <form
   onSubmit={handleSubmit(onSubmit)}
-  action="/upload" method="post" enctype="multipart/form-data"
   className="max-w-4xl p-8 mx-auto space-y-10 border rounded-lg shadow-lg border-richblack-700 bg-richblack-800"
 >
   <h2 className="mb-8 text-2xl font-bold text-center text-richblack-5">
@@ -283,13 +290,20 @@ console.log("Form submitted with data:", data)
   )}
 </div>
   {/* Course Thumbnail Image */}
-  <div>
+  <div className="flex flex-col space-y-2">
+    <label className="text-sm font-medium text-richblack-5" htmlFor="courseImage">
+      Course Thumbnail <sup className="text-pink-400">*</sup>
+    </label>
     <input
-type="file" 
-name="avatar" 
-  //  onChange={handleImageUpload}
-  accept="image/jpeg,image/jpg,image/png"
-/>
+      id="courseImage"
+      type="file" 
+      {...register("courseImage", { required: true })}
+      accept="image/jpeg,image/jpg,image/png"
+      className="w-full p-3 border rounded-md border-richblack-600 bg-richblack-900 text-richblack-5 placeholder-richblack-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-300"
+    />
+    {errors.courseImage && (
+      <span className="text-xs text-pink-400">Course thumbnail is required</span>
+    )}
   </div>
 
   {/* Benefits of the course */}

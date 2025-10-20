@@ -41,14 +41,13 @@ const {
 
 // Importing Middlewares
 const { auth, isInstructor, isStudent, isAdmin } = require("../middleware/Auth")
+const upload = require("../middleware/multer")
 
 // ********************************************************************************************************
 //                                      Course routes
 // ********************************************************************************************************
 // Courses can Only be Created by Instructors
-router.post("/createCourse", auth,
-   isInstructor,
-    createCourse)
+router.post("/createCourse", auth, isInstructor, upload.single("thumbnails"), createCourse)
 //Add a Section to a Course api/v1/Course
 router.post("/addSection", auth, isInstructor,
   createSectionCourse)

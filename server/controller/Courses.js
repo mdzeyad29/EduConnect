@@ -8,6 +8,7 @@ exports.createCourse = async(req,res)=>{
   console.log("Inside the createCourseController")
   console.log("req Body",req.body);
   const {courseName,courseDescription,whatYouWillLearn,price,tags} = req.body
+  let tagDetails;
           //check for the instructor 
    const userId = req.User.id;
         console.log("UserId Controller", userId)
@@ -21,16 +22,25 @@ exports.createCourse = async(req,res)=>{
                 message:"Instructor is not found"
            });
         }
-//TAGS
+//TAGS: accept JSON stringified array or single string or array
  if (typeof tags === "string") {
-  // If only one tag is passed (e.g. "Add")
-  tagDetails = [tags];
+  try {
+    const maybeArray = JSON.parse(tags);
+    if (Array.isArray(maybeArray)) {
+      tagDetails = maybeArray;
+    } else {
+      tagDetails = [tags];
+    }
+  } catch (e) {
+    // not JSON, treat as single tag string
+    tagDetails = [tags];
+  }
 } else if (Array.isArray(tags)) {
   tagDetails = tags;
 } else {
   return res.status(400).json({
     success: false,
-    message: "Tags must be a string or array"
+    message: "Tags must be a string or array",
   });
 }
  if(!tagDetails){
@@ -42,15 +52,15 @@ exports.createCourse = async(req,res)=>{
 
 
 //THUMBNAILS
-console.log("req.file",req.files)
- if (!req.files) {
+console.log("req.file",req.file)
+ if (!req.file) {
       return res.status(400).json({
         success: false,
         message: "Thumbnail image is required",
       });
     }
 
-const file = req.files.thumbnails; // get the actual file
+const file = req.file; // get the actual file
 const thumbnailImage = await uploadImageToCloudinary(
  file,
       process.env.FOLDER_NAME
@@ -64,7 +74,7 @@ console.log("issue is here 2")
             whatYouWillLearn,
             Instructor:instructorDetail._id,
             price,
-            tags,
+            tags: tagDetails,
              thumbnails:  thumbnailImage.secure_url,
         });
             console.log("new Course",newCourse);
@@ -81,9 +91,11 @@ console.log("issue is here 2")
            data:newCourse,
        });
       }catch(error){
-         return res.status(401).json({
+         console.error("CreateCourse error:", error);
+         return res.status(500).json({
             success:false,
-            message:"CreateCourse Controller is not working "
+            message:"CreateCourse failed",
+            error: error?.message || "Unknown error",
        });
       }
 

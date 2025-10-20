@@ -82,25 +82,13 @@ export const fetchCourseCategories = async () => {
 }
 
 // add the course details
-export const addCourseDetails = async (courseData, token) => {
+export const addCourseDetails = async (formData, token) => {
   let result = null
   const toastId = toast.loading("Loading...")
   
   try {
-     const formData = new FormData()
-    formData.append("courseName", courseData.courseName)
-    formData.append("courseDescription", courseData.courseDescription)
-    formData.append("price", courseData.price)
-
-     if (courseData.thumbnail) {
-      formData.append("thumbnail", courseData.thumbnail) // file object
-    }
-    if (courseData.video) {
-      formData.append("video", courseData.video) // file object
-    }
-
     const response = await apiConnector("POST", CREATE_COURSE_API, formData, {
-     "Content-Type": "multipart/form-data",
+      // Let axios set the correct Content-Type with boundary
       Authorization: `Bearer ${token}`,
     })
     console.log("CREATE COURSE API RESPONSE............", response)
@@ -123,7 +111,7 @@ export const editCourseDetails = async (data, token) => {
   const toastId = toast.loading("Loading...")
   try {
     const response = await apiConnector("POST", EDIT_COURSE_API, data, {
-      "Content-Type": "multipart/form-data",
+      // Let axios set the correct Content-Type with boundary
       Authorization: `Bearer ${token}`,
     })
     console.log("EDIT COURSE API RESPONSE............", response)
@@ -153,7 +141,8 @@ export const createSection = async (data, token) => {
       throw new Error("Could Not Create Section")
     }
     toast.success("Course Section Created")
-    result = response?.data?.updatedCourse
+    // Backend returns { updateDetail: <updated course> }
+    result = response?.data?.updateDetail
   } catch (error) {
     console.log("CREATE SECTION API ERROR............", error)
     toast.error(error.message)
@@ -197,7 +186,8 @@ export const updateSection = async (data, token) => {
       throw new Error("Could Not Update Section")
     }
     toast.success("Course Section Updated")
-    result = response?.data?.data
+    // Align with create section response shape for consistency
+    result = response?.data?.updateDetail || response?.data?.data
   } catch (error) {
     console.log("UPDATE SECTION API ERROR............", error)
     toast.error(error.message)
@@ -241,7 +231,7 @@ export const deleteSection = async (data, token) => {
       throw new Error("Could Not Delete Section")
     }
     toast.success("Course Section Deleted")
-    result = response?.data?.data
+    result = response?.data?.updateDetail || response?.data?.data
   } catch (error) {
     console.log("DELETE SECTION API ERROR............", error)
     toast.error(error.message)

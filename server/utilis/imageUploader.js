@@ -7,6 +7,6 @@ exports.uploadImageToCloudinary = async (file, folder, height, quality) => {
 
     options.resource_type = "auto";
 
-    // file.tempFilePath is the actual path for express-fileupload
-    return await cloudinary.uploader.upload(file.tempFilePath, options);
+    // With multer, file.path holds the on-disk path
+    return await cloudinary.uploader.upload(file.path, options);
 }

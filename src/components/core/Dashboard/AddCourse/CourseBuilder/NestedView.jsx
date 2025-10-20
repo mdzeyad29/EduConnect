@@ -30,9 +30,8 @@ const NestedView = ({handleChangeEditSectionName}) => {
       const handleDeleleSection = async (sectionId) => {
     const result = await deleteSection({
       sectionId,
-      courseId: course._id,
-      token,
-    })
+      courseId: course?._id,
+    }, token)
     if (result) {
       dispatch(setCourse(result))
     }
@@ -40,7 +39,7 @@ const NestedView = ({handleChangeEditSectionName}) => {
   }
 
     const handleDeleteSubSection = async (subSectionId, sectionId) => {
-        const result = await deleteSubSection({subSectionId, sectionId, token});
+        const result = await deleteSubSection({subSectionId, sectionId}, token);
         if(result) {
             //TODO: extra kya kar skte h yaha pr 
             dispatch(setCourse(result));
@@ -53,7 +52,7 @@ const NestedView = ({handleChangeEditSectionName}) => {
         className="p-6 px-8 rounded-lg bg-richblack-700"
         id="nestedViewContainer"
       >
-        {course.courseContent.map((section) => (
+        {(course?.courseContent || []).map((section) => (
           // Section Dropdown
           <details key={section._id} open>
             {/* Section Dropdown Content */}
@@ -95,7 +94,7 @@ const NestedView = ({handleChangeEditSectionName}) => {
             </summary>
             <div className="px-6 pb-4">
               {/* Render All Sub Sections Within a Section */}
-              {section.subSection.map((data) => (
+              {(section?.subSection || []).map((data) => (
                 <div
                   key={data?._id}
                   onClick={() => setViewSubSection(data)}
