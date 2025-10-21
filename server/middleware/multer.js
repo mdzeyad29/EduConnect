@@ -18,16 +18,19 @@ const storage = multer.diskStorage({
   },
 });
 
-// File filter (optional, e.g. only images)
+// File filter (optional, e.g. only images and videos)
 const fileFilter = (req, file, cb) => {
   if (
     file.mimetype === "image/jpeg" ||
     file.mimetype === "image/png" ||
-    file.mimetype === "image/jpg"
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "video/mp4" ||
+    file.mimetype === "video/webm" ||
+    file.mimetype === "video/avi"
   ) {
     cb(null, true);
   } else {
-    cb(new Error("Invalid file type, only JPEG/PNG allowed!"), false);
+    cb(new Error("Invalid file type, only JPEG/PNG/MP4/WebM/AVI allowed!"), false);
   }
 };
 
