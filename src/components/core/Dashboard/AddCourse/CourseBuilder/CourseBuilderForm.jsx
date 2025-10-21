@@ -37,7 +37,7 @@ const CourseBuilderForm = () => {
         {
           sectionName: data.sectionName,
           sectionId: editSectionName,
-          // courseId: course._id,
+          courseId: course._id,
         }, token
       )
     }

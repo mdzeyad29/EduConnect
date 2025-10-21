@@ -35,7 +35,7 @@ const SubSectionModal = ({
         if(view || edit) {
             setValue("lectureTitle", modalData.title);
             setValue("lectureDesc", modalData.description);
-            setValue("lectureVideo", modalData.videoUrl);
+            setValue("lectureVideo", modalData.videoFile);
         }
     },[]);
 
@@ -43,7 +43,7 @@ const SubSectionModal = ({
         const currentValues = getValues();
         if(currentValues.lectureTitle !== modalData.title ||
             currentValues.lectureDesc !== modalData.description ||
-            currentValues.lectureVideo !== modalData.videoUrl ) {
+            currentValues.lectureVideo !== modalData.videoFile ) {
                 return true;
             }
         else {
@@ -67,7 +67,7 @@ const SubSectionModal = ({
             formData.append("description", currentValues.lectureDesc);
         }
 
-        if(currentValues.lectureVideo !== modalData.videoUrl) {
+        if(currentValues.lectureVideo !== modalData.videoFile) {
             formData.append("video", currentValues.lectureVideo);
         }
 
@@ -83,12 +83,14 @@ const SubSectionModal = ({
     }
 
     const onSubmit = async (data) => {
+        console.log("SubSectionModal onSubmit called with data:", data);
+        console.log("Modal mode - add:", add, "edit:", edit, "view:", view);
 
         if(view)
             return;
 
         if(edit) {
-            if(!isFormUpdated) {
+            if(!isFormUpdated()) {
                 toast.error("No changes made to the form")
             }
             else {
@@ -106,7 +108,10 @@ const SubSectionModal = ({
         formData.append("sectionId", sectionId);
         formData.append("title", data.lectureTitle);
         formData.append("description", data.lectureDesc);
-        formData.append("video", data.lectureVideo);
+        // backend expects timeduration; send empty or computed later
+        formData.append("timeduration", "");
+        // backend expects videoFile key
+        formData.append("videoFile", data.lectureVideo);
         setLoading(true);
         //API CALL
         const result = await createSubSection(formData, token);
@@ -134,54 +139,79 @@ const SubSectionModal = ({
                     <RxCross1 />
                 </button>
             </div>
-            <form onSubmit={handleSubmit(onSubmit)}>
-                <Upload 
-                    name="lectureVideo"
-                    label="Lecture Video"
-                    register={register}
-                    setValue={setValue}
-                    errors={errors}
-                    video={true}
-                    viewData={view ? modalData.videoUrl: null}
-                    editData={edit ? modalData.videoUrl: null}
-                />
-                <div>
-                    <label>Lecture Title</label>
-                    <input 
-                        id='lectureTitle'
-                        placeholder='Enter Lecture Title'
-                        {...register("lectureTitle", {required:true})}
-                        className='w-full'
-                    />
-                    {errors.lectureTitle && (<span>
-                        Lecture Title is required
-                    </span>)}
-                </div>
-                <div>
-                    <label>Lecture Description</label>
-                    <textarea 
-                        id='lectureDesc'
-                        placeholder='Enter Lecture Description'
-                        {...register("lectureDesc", {required:true})}
-                        className='w-full min-h-[130px]'
-                    />
-                    {
-                        errors.lectureDesc && (<span>
-                            Lecture Description is required
-                        </span>)
-                    }
-                </div>
+            <form
+  onSubmit={handleSubmit(onSubmit)}
+  className="flex flex-col gap-6 bg-white p-6 rounded-2xl shadow-md max-w-2xl mx-auto"
+>
+  {/* Upload */}
+  <div>
+    <label className="block text-gray-700 font-semibold mb-2">Lecture Video</label>
+    <Upload
+      name="lectureVideo"
+      label="Lecture Video"
+      register={register}
+      setValue={setValue}
+      errors={errors}
+      video={true}
+      viewData={view ? modalData.videoFile : null}
+      editData={edit ? modalData.videoFile : null}
+    />
+    {errors.lectureVideo && (
+      <p className="text-red-500 text-sm mt-1">Lecture video is required</p>
+    )}
+  </div>
 
-                {
-                    !view && (
-                        <div>
-                            <IconBtn 
-                                text={loading ? "Loading...": edit ? "Save Changes" : "Save"}
-                            />
-                        </div>
-                    )
-                }
-            </form>
+  {/* Title */}
+  <div>
+    <label
+      htmlFor="lectureTitle"
+      className="block text-gray-700 font-semibold mb-2"
+    >
+      Lecture Title
+    </label>
+    <input
+      id="lectureTitle"
+      placeholder="Enter Lecture Title"
+      {...register("lectureTitle", { required: true })}
+      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+    />
+    {errors.lectureTitle && (
+      <p className="text-red-500 text-sm mt-1">Lecture title is required</p>
+    )}
+  </div>
+
+  {/* Description */}
+  <div>
+    <label
+      htmlFor="lectureDesc"
+      className="block text-gray-700 font-semibold mb-2"
+    >
+      Lecture Description
+    </label>
+    <textarea
+      id="lectureDesc"
+      placeholder="Enter Lecture Description"
+      {...register("lectureDesc", { required: true })}
+      className="w-full border border-gray-300 rounded-lg px-4 py-2 min-h-[130px] focus:ring-2 focus:ring-blue-500 focus:outline-none"
+    />
+    {errors.lectureDesc && (
+      <p className="text-red-500 text-sm mt-1">Lecture description is required</p>
+    )}
+  </div>
+
+  {/* Submit Button */}
+  {!view && (
+    <div className="pt-2">
+      <IconBtn
+        type="submit"
+        disabled={loading}
+        text={loading ? "Loading..." : edit ? "Save Changes" : "Save"}
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 font-medium transition"
+      />
+    </div>
+  )}
+</form>
+
         </div>
 
     </div>

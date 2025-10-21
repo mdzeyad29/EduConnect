@@ -55,7 +55,7 @@ exports.createSectionCourse = async(req,res)=>{
     }
 }
 
-exports.upDateCourse = async(req,res)=>{
+exports.updateSection = async(req,res)=>{
     try{
         // data fetch
         const {sectionName,sectionId} = req.body;

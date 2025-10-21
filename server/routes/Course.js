@@ -21,7 +21,7 @@ const {
 // Sections Controllers Import
 const {
   createSectionCourse,
-  upDateCourse,
+  updateSection,
   deleteSection,
 } = require("../controller/Section")
 
@@ -52,15 +52,15 @@ router.post("/createCourse", auth, isInstructor, upload.single("thumbnails"), cr
 router.post("/addSection", auth, isInstructor,
   createSectionCourse)
 // Update a Section
-router.post("/updateSection", auth, isInstructor,upDateCourse)
+router.post("/updateSection", auth, isInstructor, updateSection)
 // Delete a Section
 router.post("/deleteSection", auth, isInstructor, deleteSection)
 // Edit Sub Section
-router.post("/updateSubSection", auth, isInstructor, updateSubSection)
+router.post("/updateSubSection", auth, isInstructor, upload.single("video"), updateSubSection)
 // Delete Sub Section
 router.post("/deleteSubSection", auth, isInstructor, deleteSubSection)
 // Add a Sub Section to a Section
-router.post("/addSubSection", auth, isInstructor, createSubSection)
+router.post("/addSubSection", auth, isInstructor, upload.single("videoFile"), createSubSection)
 // Get all Registered Courses
 router.get("/getAllCourses", getAllCourses)
 // Get Details for a Specific Courses
