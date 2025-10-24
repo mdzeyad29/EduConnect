@@ -24,7 +24,28 @@ exports.createSubSection = async(req,res)=>{
    }
   
    // store in db (cloudinary)//recieve secureUrl
-const uploadDetail = await uploadImageToCloudinary(video);
+let uploadDetail;
+try {
+  uploadDetail = await uploadImageToCloudinary(video);
+} catch (uploadError) {
+  console.error("Cloudinary upload error:", uploadError);
+  
+  // Handle specific file size error
+  if (uploadError.message && uploadError.message.includes('File size too large')) {
+    return res.status(400).json({
+      success: false,
+      message: "Video file size too large. Please upload a video smaller than 10MB.",
+      error: "FILE_SIZE_EXCEEDED"
+    });
+  }
+  
+  // Handle other Cloudinary errors
+  return res.status(400).json({
+    success: false,
+    message: "Failed to upload video file. Please try again.",
+    error: "UPLOAD_FAILED"
+  });
+}
    //create subsection
    const createSectionDetail =  await  subSection.create({
     title:title,
@@ -88,10 +109,31 @@ exports.updateSubSection = async (req, res) => {
       
       if (req.file) {
         const video = req.file
-        const uploadDetails = await uploadImageToCloudinary(video)
-        subSectionDoc.videoFile = uploadDetails.secure_url
-        if (uploadDetails.duration) {
-          subSectionDoc.timeDuration = `${uploadDetails.duration}`
+        let uploadDetails;
+        try {
+          uploadDetails = await uploadImageToCloudinary(video)
+          subSectionDoc.videoFile = uploadDetails.secure_url
+          if (uploadDetails.duration) {
+            subSectionDoc.timeDuration = `${uploadDetails.duration}`
+          }
+        } catch (uploadError) {
+          console.error("Cloudinary upload error:", uploadError);
+          
+          // Handle specific file size error
+          if (uploadError.message && uploadError.message.includes('File size too large')) {
+            return res.status(400).json({
+              success: false,
+              message: "Video file size too large. Please upload a video smaller than 10MB.",
+              error: "FILE_SIZE_EXCEEDED"
+            });
+          }
+          
+          // Handle other Cloudinary errors
+          return res.status(400).json({
+            success: false,
+            message: "Failed to upload video file. Please try again.",
+            error: "UPLOAD_FAILED"
+          });
         }
       }
   

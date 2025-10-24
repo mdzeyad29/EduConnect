@@ -8,6 +8,8 @@ const {
   createCourse,
   getAllCourses,
   getCourseDetails,
+  editCourse,
+  getInstructorCourses,
 } = require("../controller/Courses")
 
 
@@ -48,6 +50,8 @@ const upload = require("../middleware/multer")
 // ********************************************************************************************************
 // Courses can Only be Created by Instructors
 router.post("/createCourse", auth, isInstructor, upload.single("thumbnails"), createCourse)
+// Edit Course Details
+router.post("/editCourse", auth, isInstructor, upload.single("thumbnails"), editCourse)
 //Add a Section to a Course api/v1/Course
 router.post("/addSection", auth, isInstructor,
   createSectionCourse)
@@ -63,6 +67,8 @@ router.post("/deleteSubSection", auth, isInstructor, deleteSubSection)
 router.post("/addSubSection", auth, isInstructor, upload.single("videoFile"), createSubSection)
 // Get all Registered Courses
 router.get("/getAllCourses", getAllCourses)
+// Get all courses by instructor
+router.get("/getInstructorCourses", auth, isInstructor, getInstructorCourses)
 // Get Details for a Specific Courses
 router.post("/getCourseDetails", getCourseDetails)
 
