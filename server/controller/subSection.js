@@ -1,5 +1,6 @@
 const subSection = require("../model/SubSection");
 const Section = require("../model/section");
+const Course = require("../model/Course");
 const { uploadImageToCloudinary } = require("../utilis/imageUploader");
 
 // uploadImageToCloudinary
@@ -23,7 +24,28 @@ exports.createSubSection = async(req,res)=>{
    }
   
    // store in db (cloudinary)//recieve secureUrl
-const uploadDetail = await uploadImageToCloudinary(video);
+let uploadDetail;
+try {
+  uploadDetail = await uploadImageToCloudinary(video);
+} catch (uploadError) {
+  console.error("Cloudinary upload error:", uploadError);
+  
+  // Handle specific file size error
+  if (uploadError.message && uploadError.message.includes('File size too large')) {
+    return res.status(400).json({
+      success: false,
+      message: "Video file size too large. Please upload a video smaller than 10MB.",
+      error: "FILE_SIZE_EXCEEDED"
+    });
+  }
+  
+  // Handle other Cloudinary errors
+  return res.status(400).json({
+    success: false,
+    message: "Failed to upload video file. Please try again.",
+    error: "UPLOAD_FAILED"
+  });
+}
    //create subsection
    const createSectionDetail =  await  subSection.create({
     title:title,
@@ -43,8 +65,16 @@ const uploadDetail = await uploadImageToCloudinary(video);
     },{new:true}).populate("subSection");
     //hw logupdate Section here and adding populate query
     console.log("updated Section",updateSubSection)
+   // Find the course that contains this section and return the full course
+   const course = await Course.findOne({ courseContent: sectionId }).populate({
+     path: "courseContent",
+     populate: {
+       path: "subSection"
+     }
+   });
+
    //return response 
-  return res.status(200).json({ success: true, data: updateSubSection })
+   return res.status(200).json({ success: true, data: course })
     }catch(error){
          console.log(error);
          return res.status(501).json({
@@ -79,22 +109,48 @@ exports.updateSubSection = async (req, res) => {
       
       if (req.file) {
         const video = req.file
-        const uploadDetails = await uploadImageToCloudinary(video)
-        subSectionDoc.videoFile = uploadDetails.secure_url
-        if (uploadDetails.duration) {
-          subSectionDoc.timeDuration = `${uploadDetails.duration}`
+        let uploadDetails;
+        try {
+          uploadDetails = await uploadImageToCloudinary(video)
+          subSectionDoc.videoFile = uploadDetails.secure_url
+          if (uploadDetails.duration) {
+            subSectionDoc.timeDuration = `${uploadDetails.duration}`
+          }
+        } catch (uploadError) {
+          console.error("Cloudinary upload error:", uploadError);
+          
+          // Handle specific file size error
+          if (uploadError.message && uploadError.message.includes('File size too large')) {
+            return res.status(400).json({
+              success: false,
+              message: "Video file size too large. Please upload a video smaller than 10MB.",
+              error: "FILE_SIZE_EXCEEDED"
+            });
+          }
+          
+          // Handle other Cloudinary errors
+          return res.status(400).json({
+            success: false,
+            message: "Failed to upload video file. Please try again.",
+            error: "UPLOAD_FAILED"
+          });
         }
       }
   
       await subSectionDoc.save()
       
-      // Return the updated section with populated subsections
-      const updatedSection = await Section.findById(sectionId).populate("subSection")
-  
+      // Find the course that contains this section and return the full course
+      const course = await Course.findOne({ courseContent: sectionId }).populate({
+        path: "courseContent",
+        populate: {
+          path: "subSection"
+        }
+      });
+
       return res.json({
         success: true,
         message: "SubSection updated successfully",
-        data: updatedSection
+        data: course
       })
     } catch (error) {
       console.error(error)
@@ -118,16 +174,25 @@ exports.deleteSubSection = async (req, res) => {
         }
       )
       const subSection = await SubSection.findByIdAndDelete({ _id: subSectionId })
-  
+
       if (!subSection) {
         return res
           .status(404)
           .json({ success: false, message: "SubSection not found" })
       }
-  
+
+      // Find the course that contains this section and return the full course
+      const course = await Course.findOne({ courseContent: sectionId }).populate({
+        path: "courseContent",
+        populate: {
+          path: "subSection"
+        }
+      });
+
       return res.json({
         success: true,
         message: "SubSection deleted successfully",
+        data: course
       })
     } catch (error) {
       console.error(error)

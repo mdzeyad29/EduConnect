@@ -61,10 +61,31 @@ console.log("req.file",req.file)
     }
 
 const file = req.file; // get the actual file
-const thumbnailImage = await uploadImageToCloudinary(
- file,
-      process.env.FOLDER_NAME
-);
+let thumbnailImage;
+try {
+  thumbnailImage = await uploadImageToCloudinary(
+    file,
+    process.env.FOLDER_NAME
+  );
+} catch (uploadError) {
+  console.error("Cloudinary upload error:", uploadError);
+  
+  // Handle specific file size error
+  if (uploadError.message && uploadError.message.includes('File size too large')) {
+    return res.status(400).json({
+      success: false,
+      message: "File size too large. Please upload an image smaller than 10MB.",
+      error: "FILE_SIZE_EXCEEDED"
+    });
+  }
+  
+  // Handle other Cloudinary errors
+  return res.status(400).json({
+    success: false,
+    message: "Failed to upload thumbnail image. Please try again.",
+    error: "UPLOAD_FAILED"
+  });
+}
 console.log("thumbnailImage",thumbnailImage);
 
 console.log("issue is here 2")
@@ -75,7 +96,8 @@ console.log("issue is here 2")
             Instructor:instructorDetail._id,
             price,
             tags: tagDetails,
-             thumbnails:  thumbnailImage.secure_url,
+            thumbnails: thumbnailImage.secure_url,
+            status: "Draft"
         });
             console.log("new Course",newCourse);
             console.log("Issue is Resolved ")
@@ -92,9 +114,19 @@ console.log("issue is here 2")
        });
       }catch(error){
          console.error("CreateCourse error:", error);
+         
+         // Handle specific Cloudinary errors that might not be caught in the upload block
+         if (error.message && error.message.includes('File size too large')) {
+           return res.status(400).json({
+             success: false,
+             message: "File size too large. Please upload an image smaller than 10MB.",
+             error: "FILE_SIZE_EXCEEDED"
+           });
+         }
+         
          return res.status(500).json({
             success:false,
-            message:"CreateCourse failed",
+            message:"Failed to create course. Please try again.",
             error: error?.message || "Unknown error",
        });
       }
@@ -103,18 +135,18 @@ console.log("issue is here 2")
 // create getAll course handler
 exports.getAllCourses = async (req, res) => {
 	try {
-		const allCourses = await Course.find(
+		const allCourses = await course.find(
 			{},
 			{
 				courseName: true,
 				price: true,
-				thumbnail: true,
-				instructor: true,
+				thumbnails: true,
+				Instructor: true,
 				ratingAndReviews: true,
 				studentsEnroled: true,
 			}
 		)
-			.populate("instructor")
+			.populate("Instructor")
 			.exec();
 		return res.status(200).json({
 			success: true,
@@ -175,4 +207,146 @@ exports.getCourseDetails = async (req,res)=>{
     message:err.message
    });
     }  
+}
+
+// edit course handler
+exports.editCourse = async (req, res) => {
+  try {
+    console.log("Inside the editCourseController")
+    console.log("req Body", req.body);
+    
+    const { courseId, courseName, courseDescription, whatYouWillLearn, price, tags, status, category, instructions } = req.body;
+    
+    // Find the course
+    const existingCourse = await course.findById(courseId);
+    if (!existingCourse) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found"
+      });
+    }
+
+    // Check if user is the instructor of this course
+    const userId = req.User.id;
+    if (existingCourse.Instructor.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to edit this course"
+      });
+    }
+
+    // Prepare update object
+    const updateData = {};
+    
+    if (courseName) updateData.courseName = courseName;
+    if (courseDescription) updateData.courseDescription = courseDescription;
+    if (whatYouWillLearn) updateData.whatYouWillLearn = whatYouWillLearn;
+    if (price) updateData.price = price;
+    if (status) updateData.status = status;
+    if (category) updateData.category = category;
+    if (instructions) updateData.instructions = instructions;
+
+    // Handle tags
+    if (tags) {
+      let tagDetails;
+      if (typeof tags === "string") {
+        try {
+          const maybeArray = JSON.parse(tags);
+          if (Array.isArray(maybeArray)) {
+            tagDetails = maybeArray;
+          } else {
+            tagDetails = [tags];
+          }
+        } catch (e) {
+          tagDetails = [tags];
+        }
+      } else if (Array.isArray(tags)) {
+        tagDetails = tags;
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Tags must be a string or array",
+        });
+      }
+      updateData.tags = tagDetails;
+    }
+
+    // Handle thumbnail upload if provided
+    if (req.file) {
+      try {
+        const thumbnailImage = await uploadImageToCloudinary(
+          req.file,
+          process.env.FOLDER_NAME
+        );
+        updateData.thumbnails = thumbnailImage.secure_url;
+      } catch (uploadError) {
+        console.error("Cloudinary upload error:", uploadError);
+        
+        if (uploadError.message && uploadError.message.includes('File size too large')) {
+          return res.status(400).json({
+            success: false,
+            message: "File size too large. Please upload an image smaller than 10MB.",
+            error: "FILE_SIZE_EXCEEDED"
+          });
+        }
+        
+        return res.status(400).json({
+          success: false,
+          message: "Failed to upload thumbnail image. Please try again.",
+          error: "UPLOAD_FAILED"
+        });
+      }
+    }
+
+    // Update the course
+    const updatedCourse = await course.findByIdAndUpdate(
+      courseId,
+      updateData,
+      { new: true }
+    ).populate("Instructor").populate("category");
+
+    console.log("Updated Course", updatedCourse);
+
+    return res.status(200).json({
+      success: true,
+      message: "Course updated successfully",
+      data: updatedCourse,
+    });
+
+  } catch (error) {
+    console.error("EditCourse error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update course. Please try again.",
+      error: error?.message || "Unknown error",
+    });
+  }
+}
+
+// get all courses by instructor
+exports.getInstructorCourses = async (req, res) => {
+  try {
+    const userId = req.User.id;
+    
+    // Find all courses created by this instructor
+    const instructorCourses = await course.find({
+      Instructor: userId
+    })
+    .populate("Instructor")
+    .populate("category")
+    .sort({ createdAt: -1 })
+    .exec();
+
+    return res.status(200).json({
+      success: true,
+      data: instructorCourses,
+    });
+  } catch (error) {
+    console.error("GetInstructorCourses error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch instructor courses",
+      error: error?.message || "Unknown error",
+    });
+  }
 }

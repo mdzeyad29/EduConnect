@@ -99,7 +99,15 @@ export const addCourseDetails = async (formData, token) => {
     result = response?.data?.data
   } catch (error) {
     console.log("CREATE COURSE API ERROR............", error)
-    toast.error(error.message)
+    
+    // Handle specific error messages from backend
+    if (error.response?.data?.message) {
+      toast.error(error.response.data.message)
+    } else if (error.message) {
+      toast.error(error.message)
+    } else {
+      toast.error("Failed to create course. Please try again.")
+    }
   }
   toast.dismiss(toastId)
   return result
@@ -156,6 +164,10 @@ export const createSubSection = async (data, token) => {
   let result = null
   const toastId = toast.loading("Loading...")
   try {
+    console.log("CREATE SUB-SECTION API - Token:", token)
+    console.log("CREATE SUB-SECTION API - Data:", data)
+    console.log("CREATE SUB-SECTION API - URL:", CREATE_SUBSECTION_API)
+    
     const response = await apiConnector("POST", CREATE_SUBSECTION_API, data, {
       Authorization: `Bearer ${token}`,
     })
@@ -167,6 +179,9 @@ export const createSubSection = async (data, token) => {
     result = response?.data?.data
   } catch (error) {
     console.log("CREATE SUB-SECTION API ERROR............", error)
+    console.log("CREATE SUB-SECTION API ERROR - Response:", error.response)
+    console.log("CREATE SUB-SECTION API ERROR - Status:", error.response?.status)
+    console.log("CREATE SUB-SECTION API ERROR - Data:", error.response?.data)
     toast.error(error.message)
   }
   toast.dismiss(toastId)
