@@ -1,5 +1,6 @@
 const subSection = require("../model/SubSection");
 const Section = require("../model/section");
+const Course = require("../model/Course");
 const { uploadImageToCloudinary } = require("../utilis/imageUploader");
 
 // uploadImageToCloudinary
@@ -43,8 +44,16 @@ const uploadDetail = await uploadImageToCloudinary(video);
     },{new:true}).populate("subSection");
     //hw logupdate Section here and adding populate query
     console.log("updated Section",updateSubSection)
+   // Find the course that contains this section and return the full course
+   const course = await Course.findOne({ courseContent: sectionId }).populate({
+     path: "courseContent",
+     populate: {
+       path: "subSection"
+     }
+   });
+
    //return response 
-  return res.status(200).json({ success: true, data: updateSubSection })
+   return res.status(200).json({ success: true, data: course })
     }catch(error){
          console.log(error);
          return res.status(501).json({
@@ -88,13 +97,18 @@ exports.updateSubSection = async (req, res) => {
   
       await subSectionDoc.save()
       
-      // Return the updated section with populated subsections
-      const updatedSection = await Section.findById(sectionId).populate("subSection")
-  
+      // Find the course that contains this section and return the full course
+      const course = await Course.findOne({ courseContent: sectionId }).populate({
+        path: "courseContent",
+        populate: {
+          path: "subSection"
+        }
+      });
+
       return res.json({
         success: true,
         message: "SubSection updated successfully",
-        data: updatedSection
+        data: course
       })
     } catch (error) {
       console.error(error)
@@ -118,16 +132,25 @@ exports.deleteSubSection = async (req, res) => {
         }
       )
       const subSection = await SubSection.findByIdAndDelete({ _id: subSectionId })
-  
+
       if (!subSection) {
         return res
           .status(404)
           .json({ success: false, message: "SubSection not found" })
       }
-  
+
+      // Find the course that contains this section and return the full course
+      const course = await Course.findOne({ courseContent: sectionId }).populate({
+        path: "courseContent",
+        populate: {
+          path: "subSection"
+        }
+      });
+
       return res.json({
         success: true,
         message: "SubSection deleted successfully",
+        data: course
       })
     } catch (error) {
       console.error(error)
