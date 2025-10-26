@@ -1,7 +1,9 @@
 const Category = require("../model/Category");
 const User = require("../model/User");
-const course = require("../model/Course")
- const { uploadImageToCloudinary}= require("../utilis/imageUploader");
+const course = require("../model/Course");
+const Section = require("../model/section");
+const SubSection = require("../model/SubSection");
+const { uploadImageToCloudinary}= require("../utilis/imageUploader");
 // create Course handler
 exports.createCourse = async(req,res)=>{
   try{
@@ -346,6 +348,79 @@ exports.getInstructorCourses = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch instructor courses",
+      error: error?.message || "Unknown error",
+    });
+  }
+}
+
+// delete course handler
+exports.deleteCourse = async (req, res) => {
+  try {
+    console.log("Inside the deleteCourseController");
+    console.log("req Body", req.body);
+    
+    const { courseId } = req.body;
+    
+    if (!courseId) {
+      return res.status(400).json({
+        success: false,
+        message: "Course ID is required"
+      });
+    }
+
+    // Find the course
+    const existingCourse = await course.findById(courseId);
+    if (!existingCourse) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found"
+      });
+    }
+
+    // Check if user is the instructor of this course
+    const userId = req.User.id;
+    if (existingCourse.Instructor.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to delete this course"
+      });
+    }
+
+    // Delete all subsections associated with this course
+    for (const sectionId of existingCourse.courseContent) {
+      const section = await Section.findById(sectionId);
+      if (section) {
+        // Delete all subsections in this section
+        for (const subSectionId of section.subSection) {
+          await SubSection.findByIdAndDelete(subSectionId);
+        }
+        // Delete the section
+        await Section.findByIdAndDelete(sectionId);
+      }
+    }
+
+    // Remove course from instructor's courses array
+    await User.findByIdAndUpdate(
+      userId,
+      { $pull: { courses: courseId } },
+      { new: true }
+    );
+
+    // Delete the course
+    await course.findByIdAndDelete(courseId);
+
+    console.log("Course deleted successfully");
+
+    return res.status(200).json({
+      success: true,
+      message: "Course deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("DeleteCourse error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete course. Please try again.",
       error: error?.message || "Unknown error",
     });
   }

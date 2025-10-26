@@ -26,13 +26,22 @@ export default function CoursesTable({ courses, setCourses }) {
 
   const handleCourseDelete = async (courseId) => {
     setLoading(true)
-    await deleteCourse({ courseId: courseId }, token)
-    const result = await fetchInstructorCourses(token)
-    if (result) {
-      setCourses(result)
+    try {
+      const deleteResult = await deleteCourse({ courseId: courseId }, token)
+      if (deleteResult && deleteResult.success) {
+        // Only refresh courses if deletion was successful
+        const result = await fetchInstructorCourses(token)
+        if (result) {
+          setCourses(result)
+        }
+      }
+    } catch (error) {
+      console.error("Error deleting course:", error)
+      // Error is already handled by the deleteCourse function with toast
+    } finally {
+      setConfirmationModal(null)
+      setLoading(false)
     }
-    setConfirmationModal(null)
-    setLoading(false)
   }
   // console.log("All Course ", courses)
   return (
@@ -70,7 +79,7 @@ export default function CoursesTable({ courses, setCourses }) {
               >
                 <Td className="flex flex-1 gap-x-4">
                   <img
-                    src={course?.thumbnail}
+                    src={course?.thumbnails}
                     alt={course?.courseName}
                     className="h-[148px] w-[220px] rounded-lg object-cover"
                   />
