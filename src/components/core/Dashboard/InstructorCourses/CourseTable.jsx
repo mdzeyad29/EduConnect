@@ -18,6 +18,7 @@ import { Table, Tbody, Td, Th, Thead, Tr } from "../../../ui/table"
 
 export default function CoursesTable({ courses, setCourses }) {
 //   const dispatch = useDispatch()
+console.log("coursesssssss", courses )
   const navigate = useNavigate()
   const { token } = useSelector((state) => state.auth)
   const [loading, setLoading] = useState(false)
