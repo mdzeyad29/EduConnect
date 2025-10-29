@@ -30,11 +30,11 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex w-full">
-    <div className="w-[40%]">
+    <div className="flex flex-col md:flex-row w-full">
+    <div className="w-full md:w-[40%] px-4 md:px-0">
     <form
       onSubmit={handleOnSubmit}
-      className="flex flex-col w-full mt-6 gap-y-4"
+      className="flex flex-col w-full mt-4 md:mt-6 gap-y-4"
     >
       <label className="w-full">
         <p className="mb-1 text-[0.875rem] leading-[1.375rem] text-richblack-5 text-xl">
@@ -92,8 +92,8 @@ function LoginForm() {
       </button>
     </form>
     </div>
-    <div className="w-[55%] flex justify-center items-center ml-8 mb-8">
-    <img src={loginimg} className="w-[80%] mb-24 rounded-md shadow-white 2xl" alt="" />
+    <div className="w-full md:w-[55%] flex justify-center items-center mt-6 md:mt-0 md:ml-8 mb-8">
+    <img src={loginimg} className="w-full md:w-[80%] max-w-md rounded-md shadow-white 2xl" alt="" />
   </div>
     </div>
   )
