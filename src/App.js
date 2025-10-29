@@ -24,7 +24,7 @@ import MyCourses from "./components/core/Dashboard/MyCourse";
 function App() {
   const {user} = useSelector((state)=>state.profile)
   return (
-   <div className="flex flex-col w-screen min-h-screen bg-richblack-900 font-inter">
+   <div className="flex flex-col w-full min-h-screen bg-richblack-900 font-inter overflow-x-hidden">
     <Navbar/>
     <Routes>
       <Route path="/" element={<Home/>} />

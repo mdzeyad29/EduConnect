@@ -1,31 +1,78 @@
-# React & Tailwind CSS Starter Pack
+# EduConnect - Online Coding Courses
 
-This is a starter pack for creating React projects with Tailwind CSS configured. It uses React version **18.2** and Tailwind CSS version **3.2**.
+EduConnect is an e-learning platform for coding courses, built with React version **18.2** and Tailwind CSS version **3.2**. It features a responsive design and Progressive Web App (PWA) capabilities.
 
-## Usage
+## Features
 
-This starter pack includes a basic setup for using **Tailwind CSS with React**. To start building your own components and styles, follow these steps:
+- 📱 **Responsive Design** - Works seamlessly on mobile, tablet, and desktop
+- 🚀 **PWA Support** - Progressive Web App with offline capabilities
+- 🎨 **Modern UI** - Built with Tailwind CSS for beautiful, responsive components
+- 🔐 **Authentication** - Login, Signup, and Profile management
+- 📚 **Course Management** - Create, manage, and enroll in courses
+- 🛒 **Cart System** - Add courses to cart and checkout
+- 💳 **Payment Integration** - Razorpay payment gateway integration
 
-1. Clone the repository to your local machine.
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v14 or higher)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository
     ```sh
-    git clone https://github.com/thepranaygupta/react-tailwind-css-starter-pack.git
+    git clone https://github.com/zeyad/EduConnect.git
+    cd EduConnect
     ```
 
-1. Install the required packages.
+2. Install dependencies
     ```sh
-    cd react-tailwind-css-starter-pack
     npm install
     ```
 
-1. Start the development server.
+3. Start the development server
     ```sh
     npm start
     ```
-1. Open the project in your browser at [`http://localhost:5173`](http://localhost:5173) to view your project.
-1. Create your React components and add your styles using Tailwind classes. You can also create new CSS files and import them into your components.
 
-The project is set up to use `postcss-cli` to process your CSS files. You can add your own `tailwind.config.js` file to customize your Tailwind setup.
+4. Start the backend server
+    ```sh
+    npm run server
+    ```
 
-## Contributing
+5. Open the project in your browser at [`http://localhost:3000`](http://localhost:3000)
 
-Contributions are welcome! If you have any suggestions or find any issues, please feel free to open an issue or a pull request.
+## Project Structure
+
+```
+EduConnect/
+├── public/          # Static files
+├── src/
+│   ├── components/  # React components
+│   ├── pages/       # Page components
+│   ├── services/    # API services
+│   ├── slice/       # Redux slices
+│   └── utils/       # Utility functions
+└── server/          # Backend server
+```
+
+## Technologies Used
+
+- React 18.2
+- Redux Toolkit
+- React Router
+- Tailwind CSS
+- Express.js
+- MongoDB
+- JWT Authentication
+- Razorpay Payment Gateway
+
+## License
+
+This project is licensed under the MIT License.
+
+## Author
+
+**Md Zeyad Ali**

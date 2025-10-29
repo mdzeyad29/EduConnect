@@ -1,5 +1,5 @@
 {
-  "name": "study-notation",
+  "name": "educonnect",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -33,7 +33,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zeyad/StudyNotation.git"
+    "url": "git+https://github.com/zeyad/EduConnect.git"
   },
   "author": "Md Zeyad Ali",
   "bugs": {
