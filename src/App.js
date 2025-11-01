@@ -19,6 +19,7 @@ import AddCourse from "./components/core/Dashboard/AddCourse";
 import { useSelector } from "react-redux";
 import { ACCOUNT_TYPE } from "./utils/constants";
 import MyCourses from "./components/core/Dashboard/MyCourse";
+import Catalog from "./pages/Catalog";
 
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
     <Navbar/>
     <Routes>
       <Route path="/" element={<Home/>} />
+      <Route path="/catalog/:categoryName" element={<Catalog/>} />
       <Route
           path="signup"
           element={

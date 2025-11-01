@@ -19,23 +19,29 @@ export const Navbar = () => {
     const { token } = useSelector((state) => state.auth);
     const { totalItem } = useSelector((state) => state.cart);
     const { user } = useSelector((state) => state.profile)
-    const [subLinks, setLinks] = useState(["home "]);
+    const [subLinks, setLinks] = useState([]);
     const [mobileMenu, setMobileMenu] = useState(false);
 
-    // const fetchSubLinks = async () => {
-    //     try {
-    //         const result = await apiConnector("GET", categories.CATEGORIES_API)
-    //         console.log("Api result is ", result);
-    //         console.log(result.data)
-    //         setLinks(result.data || []); // Ensure it's an array
-    //     } catch (err) {
-    //         console.log("Could not fetch the API data");
-    //     }
-    // }
-    // useEffect(() => {
-    //     fetchSubLinks();
-    // }, [])
-
+    const fetchSubLinks = async () => {
+        try {
+            const result = await apiConnector("GET", categories.CATEGORIES_API)
+            console.log("Api result is ", result);
+            console.log("result.data is ", result.data);
+            // API returns { success: true, data: [...] }, so we need result.data.data
+            const categoriesData = result.data?.data || [];
+            console.log("Categories data is ", categoriesData);
+            setLinks(categoriesData); // Set the actual array of categories
+        } catch (err) {
+            console.log("Could not fetch the API data", err);
+        }
+    }
+    useEffect(() => {
+        fetchSubLinks();
+    }, [])
+    
+    useEffect(() => {
+        console.log("subLinks are ", subLinks);
+    }, [subLinks]);
     function matchRoute(route) {
         if (!route) return false; // Handle undefined/null routes
         return matchPath({ path: route }, location.pathname)
@@ -94,15 +100,21 @@ export const Navbar = () => {
                                                     <div className='absolute  top-0 flex left-[36%] bg-richblack-5  rotate-45 rounded h-6 w-6 translate-y-[-27%]'>
                                                     </div>
                                                     {
-                                                        subLinks.length ? (
+                                                        subLinks.length > 0 ? (
                                                             subLinks.map((subLink, index) => (
-                                                                <Link to={`${subLink.link}`} key={index}>
-                                                                    <p> {subLink.title}</p>
+                                                                <Link 
+                                                                    to={`/catalog/${subLink.name?.toLowerCase().replace(/\s+/g, '-').replace(/\//g, '-')}`} 
+                                                                    key={subLink._id || index}
+                                                                    className="hover:text-richblack-900 transition-colors"
+                                                                >
+                                                                    <p>{subLink.name}</p>
                                                                 </Link>
                                                             ))
-                                                        ) : (<div>
-                                                            <div>there is no tags</div>
-                                                        </div>)
+                                                        ) : (
+                                                            <div className="text-richblack-400 text-sm">
+                                                                No categories available
+                                                            </div>
+                                                        )
                                                     }
                                                 </div>
                                             </div>) : (
