@@ -53,41 +53,60 @@ exports.ShowAllPageDetail = async(req,res)=>{
 try{
     //get categoryId
     const {categoryId} = req.body;
-    //get courses for specified categoryId
-    const selectedCategory = await Category.findById(categoryId)
-                                    .populate("courses")
-                                    .exec();
+    
+    if (!categoryId) {
+        return res.status(400).json({
+            success: false,
+            message: "Category ID is required"
+        });
+    }
+
+    //get category details
+    const selectedCategory = await Category.findById(categoryId).exec();
+    
     //validation
     if(!selectedCategory) {
         return res.status(404).json({
-            success:false,
-            message:'Data Not Found',
+            success: false,
+            message: 'Category Not Found',
         });
     }
-    //get coursesfor different categories
+
+    // Get courses for this category (courses have category field that references Category)
+    const Course = require("../model/Course");
+    const categoryCourses = await Course.find({
+        category: categoryId,
+        status: "Published" // Only show published courses
+    })
+    .populate("Instructor")
+    .populate("category")
+    .exec();
+
+    //get courses for different categories
     const differentCategories = await Category.find({
         _id: {$ne: categoryId},
-        })
-        .populate("courses")
-        .exec();
+    }).exec();
 
-            //get top 10 selling courses
-            //HW - write it on your own
+    //get top selling courses (you can implement this later)
+    //HW - write it on your own
 
-            //return response
-            return res.status(200).json({
-                success:true,
-                data: {
-                    selectedCategory,
-                    differentCategories,
-                },
-            });
+    //return response
+    return res.status(200).json({
+        success: true,
+        data: {
+            selectedCategory: {
+                ...selectedCategory.toObject(),
+                courses: categoryCourses
+            },
+            differentCategories,
+        },
+    });
 
 }catch(err){
-    console.log(err);
+    console.log("ShowAllPageDetail error:", err);
     return res.status(500).json({
-         success:false,
-         message:err.message  
+        success: false,
+        message: err.message || "Failed to fetch category page details"
     })
 }
 }

@@ -2,7 +2,7 @@ import { toast } from "react-hot-toast"
 // import { updateCompletedLectures } from "../../slices/viewCourseSlice"
 // import { setLoading } from "../../slices/profileSlice";
 import { apiConnector } from "../apiconnector"
-import { courseEndpoints } from "../apis"
+import { catalogData, courseEndpoints } from "../apis"
 
 const {
   COURSE_DETAILS_API,
@@ -42,25 +42,37 @@ export const getAllCourses = async () => {
 
 export const fetchCourseDetails = async (courseId) => {
   const toastId = toast.loading("Loading...")
-  //   dispatch(setLoading(true));
   let result = null
   try {
+    if (!courseId) {
+      throw new Error("Course ID is required")
+    }
+
     const response = await apiConnector("POST", COURSE_DETAILS_API, {
       courseId,
     })
     console.log("COURSE_DETAILS_API API RESPONSE............", response)
 
-    if (!response.data.success) {
-      throw new Error(response.data.message)
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Failed to fetch course details")
     }
     result = response.data
+    toast.dismiss(toastId)
   } catch (error) {
     console.log("COURSE_DETAILS_API API ERROR............", error)
-    result = error.response.data
-    // toast.error(error.response.data.message);
+    toast.dismiss(toastId)
+    if (error?.response?.data) {
+      toast.error(error.response.data.message || "Failed to fetch course details")
+      result = error.response.data
+    } else {
+      toast.error(error.message || "Failed to fetch course details")
+      result = {
+        success: false,
+        message: error.message || "Failed to fetch course details",
+        data: null
+      }
+    }
   }
-  toast.dismiss(toastId)
-  //   dispatch(setLoading(false));
   return result
 }
 

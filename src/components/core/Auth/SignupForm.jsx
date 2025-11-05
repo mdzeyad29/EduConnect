@@ -82,12 +82,12 @@ function SignupForm() {
   ]
 
   return (
-    <div className="w-full h-fit">
+    <div className="w-full h-fit px-4 md:px-0">
       {/* Tab */}
       <Tab tabData={tabData} field={accountType} setField={setAccountType} />
       {/* Form */}
-      <form onSubmit={handleOnSubmit} className="flex w-full gap-y-8">
-      <div className="flex flex-col w-[48%] gap-y-8  px-4 py-4 mt-6">
+      <form onSubmit={handleOnSubmit} className="flex flex-col md:flex-row w-full gap-y-8">
+      <div className="flex flex-col w-full md:w-[48%] gap-y-6 md:gap-y-8 md:px-4 py-4 mt-4 md:mt-6">
         <div className="flex gap-x-4">
           <label>
             <p className="mb-1 text-[0.875rem] leading-[1.375rem] text-richblack-5">
@@ -127,7 +127,7 @@ function SignupForm() {
         {
             //email address
         }
-        <label className="w-full">
+        <label className="w-full mt-2 md:mt-0">
           <p className="mb-1 text-[0.875rem] leading-[1.375rem] text-richblack-5">
             Email Address <sup className="text-pink-200">*</sup>
           </p>
@@ -205,13 +205,13 @@ function SignupForm() {
         </div>
         <button
         type="submit"
-        className="mt-6 rounded-[8px] bg-yellow-50 py-[8px] px-[12px] font-medium text-richblack-900 m-auto flex justify-center"
+        className="mt-4 md:mt-6 rounded-[8px] bg-yellow-50 py-[8px] px-[12px] font-medium text-richblack-900 m-auto flex justify-center"
       >
         Create Account
       </button>
         </div>
-        <div className="w-[45%] flex justify-center items-center ml-8 mb-8">
-        <img src={signup} className="mb-24 rounded-md shadow-white 2xl" alt="" />
+        <div className="w-full md:w-[45%] flex justify-center items-center md:ml-8 mt-6 md:mt-0 mb-8">
+        <img src={signup} className="w-full max-w-md md:w-auto mb-8 md:mb-24 rounded-md shadow-white 2xl" alt="" />
       </div>
        
       </form>

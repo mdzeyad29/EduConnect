@@ -19,15 +19,17 @@ import AddCourse from "./components/core/Dashboard/AddCourse";
 import { useSelector } from "react-redux";
 import { ACCOUNT_TYPE } from "./utils/constants";
 import MyCourses from "./components/core/Dashboard/MyCourse";
+import Catalog from "./pages/Catalog";
 
 
 function App() {
   const {user} = useSelector((state)=>state.profile)
   return (
-   <div className="flex flex-col w-screen min-h-screen bg-richblack-900 font-inter">
+   <div className="flex flex-col w-full min-h-screen bg-richblack-900 font-inter overflow-x-hidden">
     <Navbar/>
     <Routes>
       <Route path="/" element={<Home/>} />
+      <Route path="/catalog/:categoryName" element={<Catalog/>} />
       <Route
           path="signup"
           element={

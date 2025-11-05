@@ -1,0 +1,21 @@
+{
+  "short_name": "EduConnect",
+  "name": "EduConnect - Online Coding Courses",
+  "icons": [
+    {
+      "src": "image/download.jpg",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "image/download.jpg",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#000814",
+  "background_color": "#000814",
+  "orientation": "portrait-primary"
+}

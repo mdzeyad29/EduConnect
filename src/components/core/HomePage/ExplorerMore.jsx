@@ -24,23 +24,23 @@ export const ExplorerMore = () => {
   }
   return (
     <div>
-    <div className='flex flex-col items-center justify-center gap-6 p-12 text-white'>
-      <div className='flex text-4xl font-semibold'>
+    <div className='flex flex-col items-center justify-center gap-4 md:gap-6 p-6 md:p-12 text-white'>
+      <div className='flex flex-wrap justify-center text-2xl md:text-4xl font-semibold px-4'>
       Unlock The <Highlighted  text={"Power Of Code"} />
       </div>
-      <p>Learn to Build AnyThing That you can imagine</p>
+      <p className="text-center px-4 text-sm md:text-base">Learn to Build AnyThing That you can imagine</p>
     </div>
     {
         //tabs
     }
-    <div className='flex items-center justify-center rounded-full bg-richblack-800 w-[55%] m-auto mb-4'>
+    <div className='flex items-center justify-center rounded-full bg-richblack-800 w-full md:w-[55%] m-auto mb-4 px-2 md:px-0 overflow-x-auto'>
      {
       tabs.map((element,index)=>{
         return(
           <div className={`flex flex-row items-center justify-center
-             text-white gap-4  text-[17px]
+             text-white gap-2 md:gap-4 text-xs md:text-sm lg:text-[17px] whitespace-nowrap
              ${currentTabs=== element?"bg-richblack-900 text-richblack-5 font-medium"
-             :"text-richblack-200"} rounded-full transition-all duration-200 cursor-pointer hover:bg-richblack-900 hover:text-richblack-5 py-4 px-4`}
+             :"text-richblack-200"} rounded-full transition-all duration-200 cursor-pointer hover:bg-richblack-900 hover:text-richblack-5 py-2 md:py-4 px-2 md:px-4`}
              key={index}
               onClick={()=>{setMyCard(element)}}>
           {element}

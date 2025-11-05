@@ -12,10 +12,10 @@ export const Dashboard = () => {
       )
     }
   return (
-    <div className='relative flex min-h-[calc(100vh-3.5rem)]'>
+    <div className='relative flex flex-col lg:flex-row min-h-[calc(100vh-3.5rem)]'>
      <Sidebar/>
-    <div className="flex-1 h-screen overflow-auto bg-richblack-900">
-  <div className="w-full px-4 py-10 sm:px-8">
+    <div className="flex-1 h-auto lg:h-screen overflow-auto bg-richblack-900">
+  <div className="w-full px-4 py-6 md:py-10 md:px-8">
     <Outlet />
   </div>
 </div>

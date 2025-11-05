@@ -167,47 +167,53 @@ exports.getAllCourses = async (req, res) => {
 exports.getCourseDetails = async (req,res)=>{
     try{
         //get id
-    const {courseId} = req.body;
-    //find courseDetail
-    const courseDetail  = await course.find(
-        {_id:courseId})
-        .populate(
-            {
-           path:"Instructor",
-           populate:{
-            path:"additionalDetails"
-           }
-        })
-        // .populate("ratingAndReviews")
-        // .populate("category")
-        .populate({
-            path:"courseContent",
-            populate:{
-                path:"subSection",
-            },
-        })
-        .exec();
+        const {courseId} = req.body;
+        
+        if (!courseId) {
+            return res.status(400).json({
+                success: false,
+                message: "Course ID is required"
+            });
+        }
+
+        //find courseDetail using findOne for single document
+        const courseDetail = await course.findOne({_id: courseId})
+            .populate({
+                path: "Instructor",
+                populate: {
+                    path: "additionalDetails"
+                }
+            })
+            .populate({
+                path: "courseContent",
+                populate: {
+                    path: "subSection",
+                },
+            })
+            .populate("category")
+            .exec();
+
         //validation 
         if(!courseDetail){
-            return res.status(400).json({
-              success:false,
-              message:`Could not find the course  with  ${courseId}`
-            })
+            return res.status(404).json({
+                success: false,
+                message: `Could not find the course with ID: ${courseId}`
+            });
         }
+
         // return response 
         return res.status(200).json({
-            success:true,
-            message:"Course detail fetch successfully",
-            data:courseDetail,
+            success: true,
+            message: "Course detail fetched successfully",
+            data: courseDetail,
+        });
 
-        })
-
-    }catch(err){
-   console.log(err);
-   return res.status(500).json({
-    success:false,
-    message:err.message
-   });
+    } catch(err) {
+        console.log("getCourseDetails error:", err);
+        return res.status(500).json({
+            success: false,
+            message: err.message || "Failed to fetch course details"
+        });
     }  
 }
 
