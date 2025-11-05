@@ -12,15 +12,18 @@ import { FiCode } from "react-icons/fi";
 import ProfileDropdown from '../core/Auth/ProfileDropdown'
 import { FaAngleDown } from "react-icons/fa";
 import { apiConnector } from '../../services/apiconnector'
-import { categories } from '../../services/apis'
+import { categories, catalogData } from '../../services/apis'
+import { useNavigate } from 'react-router-dom'
 
 export const Navbar = () => {
     const location = useLocation();
+    const navigate = useNavigate();
     const { token } = useSelector((state) => state.auth);
     const { totalItem } = useSelector((state) => state.cart);
     const { user } = useSelector((state) => state.profile)
     const [subLinks, setLinks] = useState([]);
     const [mobileMenu, setMobileMenu] = useState(false);
+    const [loadingCategories, setLoadingCategories] = useState({});
 
     const fetchSubLinks = async () => {
         try {
@@ -42,6 +45,63 @@ export const Navbar = () => {
     useEffect(() => {
         console.log("subLinks are ", subLinks);
     }, [subLinks]);
+
+    // Function to fetch courses for a specific category
+    const fetchCategoryCourses = async (categoryId, categoryName) => {
+        try {
+            setLoadingCategories(prev => ({ ...prev, [categoryId]: true }));
+            console.log("Fetching courses for category:", categoryName, "ID:", categoryId);
+            
+            const response = await apiConnector("POST", catalogData.CATALOGPAGEDATA_API, {
+                categoryId: categoryId,
+            });
+
+            console.log("Category courses API response:", response);
+
+            if (response?.data?.success && response?.data?.data?.selectedCategory) {
+                const courses = response.data.data.selectedCategory.courses || [];
+                console.log(`Found ${courses.length} courses for category ${categoryName}`);
+                
+                // Navigate to catalog page with category data
+                const categoryUrl = categoryName?.toLowerCase().replace(/\s+/g, '-').replace(/\//g, '-');
+                navigate(`/catalog/${categoryUrl}`, {
+                    state: {
+                        category: response.data.data.selectedCategory,
+                        courses: courses,
+                        differentCategories: response.data.data.differentCategories,
+                        categoryId: categoryId
+                    }
+                });
+            } else {
+                console.log("No courses found or invalid response");
+                // Still navigate to catalog page with category info even if no courses
+                const categoryUrl = categoryName?.toLowerCase().replace(/\s+/g, '-').replace(/\//g, '-');
+                navigate(`/catalog/${categoryUrl}`, {
+                    state: {
+                        category: { _id: categoryId, name: categoryName },
+                        courses: [],
+                        categoryId: categoryId
+                    }
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching category courses:", error);
+            // Navigate to catalog page even on error
+            const categoryUrl = categoryName?.toLowerCase().replace(/\s+/g, '-').replace(/\//g, '-');
+            navigate(`/catalog/${categoryUrl}`);
+        } finally {
+            setLoadingCategories(prev => ({ ...prev, [categoryId]: false }));
+        }
+    };
+
+    // Handle category click
+    const handleCategoryClick = (e, category) => {
+        e.preventDefault();
+        if (category._id) {
+            fetchCategoryCourses(category._id, category.name);
+        }
+    };
+
     function matchRoute(route) {
         if (!route) return false; // Handle undefined/null routes
         return matchPath({ path: route }, location.pathname)
@@ -101,15 +161,23 @@ export const Navbar = () => {
                                                     </div>
                                                     {
                                                         subLinks.length > 0 ? (
-                                                            subLinks.map((subLink, index) => (
-                                                                <Link 
-                                                                    to={`/catalog/${subLink.name?.toLowerCase().replace(/\s+/g, '-').replace(/\//g, '-')}`} 
-                                                                    key={subLink._id || index}
-                                                                    className="hover:text-richblack-900 transition-colors"
-                                                                >
-                                                                    <p>{subLink.name}</p>
-                                                                </Link>
-                                                            ))
+                                                            subLinks.map((subLink, index) => {
+                                                                const isLoading = loadingCategories[subLink._id];
+                                                                return (
+                                                                    <div 
+                                                                        key={subLink._id || index}
+                                                                        onClick={(e) => handleCategoryClick(e, subLink)}
+                                                                        className="hover:text-richblack-900 transition-colors cursor-pointer flex items-center justify-between"
+                                                                    >
+                                                                        <p>{subLink.name}</p>
+                                                                        {isLoading && (
+                                                                            <span className="text-xs text-richblack-400">
+                                                                                Loading...
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            })
                                                         ) : (
                                                             <div className="text-richblack-400 text-sm">
                                                                 No categories available

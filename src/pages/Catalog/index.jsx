@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { getAllCourses, fetchCourseCategories, fetchCourseDetails } from "../../services/operations/courseDetailsAPI";
 import { apiConnector } from "../../services/apiconnector";
 import { catalogData } from "../../services/apis";
@@ -9,6 +9,7 @@ import { IoMdClose } from "react-icons/io";
 
 const Catalog = () => {
   const { categoryName } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [category, setCategory] = useState(null);
@@ -22,6 +23,40 @@ const Catalog = () => {
     const fetchCategoryData = async () => {
       setLoading(true);
       try {
+        // Check if data was passed from Navbar via navigation state
+        if (location.state?.category) {
+          console.log("Using data from navigation state");
+          setCategory(location.state.category);
+          const passedCourses = location.state.courses || [];
+          
+          // If courses array is empty, try to fetch all courses and filter
+          if (passedCourses.length === 0) {
+            console.log("No courses in navigation state, fetching all courses as fallback");
+            const allCourses = await getAllCourses();
+            const categoryId = location.state.category._id || location.state.category;
+            const filteredCourses = allCourses.filter(
+              (course) => {
+                const courseCategoryId = course.category?._id?.toString() || course.category?.toString();
+                const matchedCategoryId = categoryId.toString();
+                return courseCategoryId === matchedCategoryId;
+              }
+            );
+            console.log(`Filtered ${filteredCourses.length} courses for category ${location.state.category.name}`);
+            setCourses(filteredCourses);
+          } else {
+            setCourses(passedCourses);
+          }
+          
+          if (location.state.differentCategories) {
+            setAllCategories(location.state.differentCategories);
+          } else {
+            const categories = await fetchCourseCategories();
+            setAllCategories(categories);
+          }
+          setLoading(false);
+          return;
+        }
+
         // Convert URL format back to category name (e.g., "web-development" -> "Web Development")
         const formattedCategoryName = categoryName
           ?.split("-")
@@ -71,9 +106,13 @@ const Catalog = () => {
               // Fallback: Fetch all courses and filter by category
               const allCourses = await getAllCourses();
               const filteredCourses = allCourses.filter(
-                (course) => course.category?._id?.toString() === matchedCategory._id.toString() ||
-                           course.category?._id === matchedCategory._id
+                (course) => {
+                  const courseCategoryId = course.category?._id?.toString() || course.category?.toString();
+                  const matchedCategoryId = matchedCategory._id.toString();
+                  return courseCategoryId === matchedCategoryId;
+                }
               );
+              console.log(`Filtered ${filteredCourses.length} courses for category ${matchedCategory.name}`);
               setCourses(filteredCourses);
             }
           } catch (error) {
@@ -81,9 +120,13 @@ const Catalog = () => {
             // Fallback: Fetch all courses and filter
             const allCourses = await getAllCourses();
             const filteredCourses = allCourses.filter(
-              (course) => course.category?._id?.toString() === matchedCategory._id.toString() ||
-                         course.category?._id === matchedCategory._id
+              (course) => {
+                const courseCategoryId = course.category?._id?.toString() || course.category?.toString();
+                const matchedCategoryId = matchedCategory._id.toString();
+                return courseCategoryId === matchedCategoryId;
+              }
             );
+            console.log(`Fallback: Filtered ${filteredCourses.length} courses for category ${matchedCategory.name}`);
             setCourses(filteredCourses);
           }
         } else {
@@ -99,7 +142,7 @@ const Catalog = () => {
     };
 
     fetchCategoryData();
-  }, [categoryName]);
+  }, [categoryName, location.state]);
 
   if (loading) {
     return (

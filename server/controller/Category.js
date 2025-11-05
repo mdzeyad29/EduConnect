@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Tags = require("../model/Category");
 const Category = require("../model/Category")
 
@@ -54,6 +55,8 @@ try{
     //get categoryId
     const {categoryId} = req.body;
     
+    console.log("ShowAllPageDetail - Received categoryId:", categoryId);
+    
     if (!categoryId) {
         return res.status(400).json({
             success: false,
@@ -61,8 +64,23 @@ try{
         });
     }
 
+    // Convert categoryId to ObjectId if it's a string
+    let categoryObjectId;
+    try {
+        categoryObjectId = mongoose.Types.ObjectId.isValid(categoryId) 
+            ? new mongoose.Types.ObjectId(categoryId) 
+            : categoryId;
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid category ID format"
+        });
+    }
+
     //get category details
-    const selectedCategory = await Category.findById(categoryId).exec();
+    const selectedCategory = await Category.findById(categoryObjectId).exec();
+    
+    console.log("Selected category:", selectedCategory ? selectedCategory.name : "Not found");
     
     //validation
     if(!selectedCategory) {
@@ -73,14 +91,33 @@ try{
     }
 
     // Get courses for this category (courses have category field that references Category)
-    const Course = require("../model/Course");
-    const categoryCourses = await Course.find({
-        category: categoryId,
+    const course = require("../model/Course");
+    
+    // Query courses - use ObjectId for proper matching
+    const categoryCourses = await course.find({
+        category: categoryObjectId,
         status: "Published" // Only show published courses
     })
     .populate("Instructor")
     .populate("category")
     .exec();
+    
+    console.log(`Found ${categoryCourses.length} published courses for category ${selectedCategory.name} (ID: ${categoryObjectId})`);
+    
+    // Debug: Check if there are any courses with this category (including drafts)
+    const allCoursesWithCategory = await course.countDocuments({
+        category: categoryObjectId
+    });
+    
+    console.log(`Total courses (including drafts) with this category: ${allCoursesWithCategory}`);
+    
+    // Debug: Check total published courses
+    const totalPublished = await course.countDocuments({ status: "Published" });
+    console.log(`Total published courses in database: ${totalPublished}`);
+    
+    // Debug: Check courses with any category
+    const coursesWithAnyCategory = await course.countDocuments({ category: { $exists: true, $ne: null } });
+    console.log(`Total courses with any category assigned: ${coursesWithAnyCategory}`);
 
     //get courses for different categories
     const differentCategories = await Category.find({
