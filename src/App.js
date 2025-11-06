@@ -20,6 +20,7 @@ import { useSelector } from "react-redux";
 import { ACCOUNT_TYPE } from "./utils/constants";
 import MyCourses from "./components/core/Dashboard/MyCourse";
 import Catalog from "./pages/Catalog";
+import Social from "./components/core/Social";
 
 
 function App() {
@@ -89,6 +90,8 @@ function App() {
         </OpenRoute>
       }
     />
+
+    <Route path="/socials" element={<Social />} />
 
     
     <Route 

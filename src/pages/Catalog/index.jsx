@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
-import { getAllCourses, fetchCourseCategories, fetchCourseDetails } from "../../services/operations/courseDetailsAPI";
+import { useSelector } from "react-redux";
+import { getAllCourses, fetchCourseCategories, fetchCourseDetails, fetchInstructorCourses } from "../../services/operations/courseDetailsAPI";
 import { apiConnector } from "../../services/apiconnector";
 import { catalogData } from "../../services/apis";
+import { ACCOUNT_TYPE } from "../../utils/constants";
 import { FaStar } from "react-icons/fa";
 import { HiArrowLeft } from "react-icons/hi";
 import { IoMdClose } from "react-icons/io";
@@ -11,6 +13,9 @@ const Catalog = () => {
   const { categoryName } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const { token } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.profile);
+  const isInstructor = user?.accountType === ACCOUNT_TYPE.INSTRUCTOR;
   const [courses, setCourses] = useState([]);
   const [category, setCategory] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -29,22 +34,38 @@ const Catalog = () => {
           setCategory(location.state.category);
           const passedCourses = location.state.courses || [];
           
-          // If courses array is empty, try to fetch all courses and filter
-          if (passedCourses.length === 0) {
-            console.log("No courses in navigation state, fetching all courses as fallback");
-            const allCourses = await getAllCourses();
+          // If instructor, filter courses to show only their own courses
+          if (isInstructor && token) {
+            console.log("Instructor detected - filtering to show only their courses");
+            const instructorCourses = await fetchInstructorCourses(token);
             const categoryId = location.state.category._id || location.state.category;
-            const filteredCourses = allCourses.filter(
+            const filteredCourses = instructorCourses.filter(
               (course) => {
                 const courseCategoryId = course.category?._id?.toString() || course.category?.toString();
                 const matchedCategoryId = categoryId.toString();
                 return courseCategoryId === matchedCategoryId;
               }
             );
-            console.log(`Filtered ${filteredCourses.length} courses for category ${location.state.category.name}`);
+            console.log(`Filtered ${filteredCourses.length} instructor courses for category ${location.state.category.name}`);
             setCourses(filteredCourses);
           } else {
-            setCourses(passedCourses);
+            // If courses array is empty, try to fetch all courses and filter
+            if (passedCourses.length === 0) {
+              console.log("No courses in navigation state, fetching all courses as fallback");
+              const allCourses = await getAllCourses();
+              const categoryId = location.state.category._id || location.state.category;
+              const filteredCourses = allCourses.filter(
+                (course) => {
+                  const courseCategoryId = course.category?._id?.toString() || course.category?.toString();
+                  const matchedCategoryId = categoryId.toString();
+                  return courseCategoryId === matchedCategoryId;
+                }
+              );
+              console.log(`Filtered ${filteredCourses.length} courses for category ${location.state.category.name}`);
+              setCourses(filteredCourses);
+            } else {
+              setCourses(passedCourses);
+            }
           }
           
           if (location.state.differentCategories) {
@@ -92,7 +113,18 @@ const Catalog = () => {
 
             if (response?.data?.success && response?.data?.data?.selectedCategory) {
               // Courses are now properly fetched and included in selectedCategory.courses
-              const categoryCourses = response.data.data.selectedCategory.courses || [];
+              let categoryCourses = response.data.data.selectedCategory.courses || [];
+              
+              // If instructor, filter to show only their courses
+              if (isInstructor && token) {
+                console.log("Instructor detected - filtering to show only their courses");
+                const instructorCourses = await fetchInstructorCourses(token);
+                const instructorCourseIds = new Set(instructorCourses.map(c => c._id.toString()));
+                categoryCourses = categoryCourses.filter(course => 
+                  instructorCourseIds.has(course._id.toString())
+                );
+                console.log(`Filtered to ${categoryCourses.length} instructor courses`);
+              }
               
               if (Array.isArray(categoryCourses) && categoryCourses.length > 0) {
                 console.log("Courses found:", categoryCourses.length);
@@ -103,36 +135,73 @@ const Catalog = () => {
               }
             } else {
               console.log("Invalid response structure, using fallback");
-              // Fallback: Fetch all courses and filter by category
-              const allCourses = await getAllCourses();
-              const filteredCourses = allCourses.filter(
+              // Fallback: Fetch courses based on user type
+              let filteredCourses;
+              if (isInstructor && token) {
+                // For instructors, fetch only their courses
+                const instructorCourses = await fetchInstructorCourses(token);
+                filteredCourses = instructorCourses.filter(
+                  (course) => {
+                    const courseCategoryId = course.category?._id?.toString() || course.category?.toString();
+                    const matchedCategoryId = matchedCategory._id.toString();
+                    return courseCategoryId === matchedCategoryId;
+                  }
+                );
+                console.log(`Filtered ${filteredCourses.length} instructor courses for category ${matchedCategory.name}`);
+              } else {
+                // For non-instructors, fetch all published courses
+                const allCourses = await getAllCourses();
+                filteredCourses = allCourses.filter(
+                  (course) => {
+                    const courseCategoryId = course.category?._id?.toString() || course.category?.toString();
+                    const matchedCategoryId = matchedCategory._id.toString();
+                    return courseCategoryId === matchedCategoryId;
+                  }
+                );
+                console.log(`Filtered ${filteredCourses.length} courses for category ${matchedCategory.name}`);
+              }
+              setCourses(filteredCourses);
+            }
+          } catch (error) {
+            console.error("Error fetching category page details:", error);
+            // Fallback: Fetch courses based on user type
+            let filteredCourses;
+            if (isInstructor && token) {
+              // For instructors, fetch only their courses
+              const instructorCourses = await fetchInstructorCourses(token);
+              filteredCourses = instructorCourses.filter(
                 (course) => {
                   const courseCategoryId = course.category?._id?.toString() || course.category?.toString();
                   const matchedCategoryId = matchedCategory._id.toString();
                   return courseCategoryId === matchedCategoryId;
                 }
               );
-              console.log(`Filtered ${filteredCourses.length} courses for category ${matchedCategory.name}`);
-              setCourses(filteredCourses);
+              console.log(`Fallback: Filtered ${filteredCourses.length} instructor courses for category ${matchedCategory.name}`);
+            } else {
+              // For non-instructors, fetch all published courses
+              const allCourses = await getAllCourses();
+              filteredCourses = allCourses.filter(
+                (course) => {
+                  const courseCategoryId = course.category?._id?.toString() || course.category?.toString();
+                  const matchedCategoryId = matchedCategory._id.toString();
+                  return courseCategoryId === matchedCategoryId;
+                }
+              );
+              console.log(`Fallback: Filtered ${filteredCourses.length} courses for category ${matchedCategory.name}`);
             }
-          } catch (error) {
-            console.error("Error fetching category page details:", error);
-            // Fallback: Fetch all courses and filter
-            const allCourses = await getAllCourses();
-            const filteredCourses = allCourses.filter(
-              (course) => {
-                const courseCategoryId = course.category?._id?.toString() || course.category?.toString();
-                const matchedCategoryId = matchedCategory._id.toString();
-                return courseCategoryId === matchedCategoryId;
-              }
-            );
-            console.log(`Fallback: Filtered ${filteredCourses.length} courses for category ${matchedCategory.name}`);
             setCourses(filteredCourses);
           }
         } else {
-          // Category not found - fetch all courses as fallback
-          const allCourses = await getAllCourses();
-          setCourses(allCourses);
+          // Category not found - fetch courses based on user type
+          if (isInstructor && token) {
+            // For instructors, show only their courses
+            const instructorCourses = await fetchInstructorCourses(token);
+            setCourses(instructorCourses);
+          } else {
+            // For non-instructors, show all published courses
+            const allCourses = await getAllCourses();
+            setCourses(allCourses);
+          }
         }
       } catch (error) {
         console.error("Error fetching catalog data:", error);
@@ -142,7 +211,7 @@ const Catalog = () => {
     };
 
     fetchCategoryData();
-  }, [categoryName, location.state]);
+  }, [categoryName, location.state, isInstructor, token]);
 
   if (loading) {
     return (
@@ -193,9 +262,16 @@ const Catalog = () => {
       {/* Category Header */}
       {category && (
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-richblack-5 mb-2">
-            {category.name}
-          </h1>
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-4xl font-bold text-richblack-5">
+              {category.name}
+            </h1>
+            {isInstructor && (
+              <span className="px-4 py-2 bg-yellow-50/10 border border-yellow-50/30 rounded-lg text-yellow-50 text-sm font-medium">
+                Viewing Only Your Courses
+              </span>
+            )}
+          </div>
           {category.description && (
             <p className="text-richblack-300 text-lg">{category.description}</p>
           )}

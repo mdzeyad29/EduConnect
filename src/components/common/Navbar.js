@@ -188,6 +188,7 @@ export const Navbar = () => {
                                             </div>) : (
                                             <Link to={link?.path}>
                                                 <p className={`${matchRoute(link.path) ? "text-yellow-25" : "text-richblack-25"}`}>{link.title}</p>
+                                                
                                             </Link>
                                         )
                                     }
