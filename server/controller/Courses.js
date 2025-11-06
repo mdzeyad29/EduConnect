@@ -3,13 +3,28 @@ const User = require("../model/User");
 const course = require("../model/Course");
 const Section = require("../model/section");
 const SubSection = require("../model/SubSection");
+const CourseProgress = require("../model/coursesProgress");
 const { uploadImageToCloudinary}= require("../utilis/imageUploader");
+
+// Helper function to convert seconds to duration format (HH:MM:SS)
+const convertSecondsToDuration = (totalSeconds) => {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  }
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+};
 // create Course handler
 exports.createCourse = async(req,res)=>{
   try{
   console.log("Inside the createCourseController")
   console.log("req Body",req.body);
-  const {courseName,courseDescription,whatYouWillLearn,price,tags} = req.body
+  console.log("Category received:", req.body.category);
+  const {courseName,courseDescription,whatYouWillLearn,price,tags,category,status} = req.body
+  console.log("Extracted category:", category);
   let tagDetails;
           //check for the instructor 
    const userId = req.User.id;
@@ -91,7 +106,7 @@ try {
 console.log("thumbnailImage",thumbnailImage);
 
 console.log("issue is here 2")
-    const newCourse = await course.create({
+    const courseData = {
             courseName,
             courseDescription,
             whatYouWillLearn,
@@ -99,9 +114,20 @@ console.log("issue is here 2")
             price,
             tags: tagDetails,
             thumbnails: thumbnailImage.secure_url,
-            status: "Draft"
-        });
+            status: status || "Draft"
+        };
+    
+    // Only add category if it's provided
+    if (category) {
+        courseData.category = category;
+        console.log("Adding category to course:", category);
+    } else {
+        console.log("No category provided, course will be created without category");
+    }
+    
+    const newCourse = await course.create(courseData);
             console.log("new Course",newCourse);
+            console.log("Course category:", newCourse.category);
             console.log("Issue is Resolved ")
         // add the new cousre to the user  Schema Instructor
         await User.findByIdAndUpdate({
@@ -134,96 +160,24 @@ console.log("issue is here 2")
       }
 
 }
-// create getAll course handler
-exports.getAllCourses = async (req, res) => {
-	try {
-		const allCourses = await course.find(
-			{},
-			{
-				courseName: true,
-				price: true,
-				thumbnails: true,
-				Instructor: true,
-				ratingAndReviews: true,
-				studentsEnroled: true,
-			}
-		)
-			.populate("Instructor")
-			.exec();
-		return res.status(200).json({
-			success: true,
-			data: allCourses,
-		});
-	} catch (error) {
-		console.log(error);
-		return res.status(404).json({
-			success: false,
-			message: `Can't Fetch Course Data`,
-			error: error.message,
-		});
-	}
-};
-
-exports.getCourseDetails = async (req,res)=>{
-    try{
-        //get id
-        const {courseId} = req.body;
-        
-        if (!courseId) {
-            return res.status(400).json({
-                success: false,
-                message: "Course ID is required"
-            });
-        }
-
-        //find courseDetail using findOne for single document
-        const courseDetail = await course.findOne({_id: courseId})
-            .populate({
-                path: "Instructor",
-                populate: {
-                    path: "additionalDetails"
-                }
-            })
-            .populate({
-                path: "courseContent",
-                populate: {
-                    path: "subSection",
-                },
-            })
-            .populate("category")
-            .exec();
-
-        //validation 
-        if(!courseDetail){
-            return res.status(404).json({
-                success: false,
-                message: `Could not find the course with ID: ${courseId}`
-            });
-        }
-
-        // return response 
-        return res.status(200).json({
-            success: true,
-            message: "Course detail fetched successfully",
-            data: courseDetail,
-        });
-
-    } catch(err) {
-        console.log("getCourseDetails error:", err);
-        return res.status(500).json({
-            success: false,
-            message: err.message || "Failed to fetch course details"
-        });
-    }  
-}
-
-// edit course handler
+// Edit Course handler
 exports.editCourse = async (req, res) => {
   try {
-    console.log("Inside the editCourseController")
+    console.log("Inside the editCourseController");
     console.log("req Body", req.body);
     
-    const { courseId, courseName, courseDescription, whatYouWillLearn, price, tags, status, category, instructions } = req.body;
+    const { courseId, courseName, courseDescription, whatYouWillLearn, price, tags, status, category } = req.body;
+    
+    if (!courseId) {
+      return res.status(400).json({
+        success: false,
+        message: "Course ID is required"
+      });
+    }
+
+    // Check for the instructor
+    const userId = req.User.id;
+    console.log("UserId Controller", userId);
     
     // Find the course
     const existingCourse = await course.findById(courseId);
@@ -235,7 +189,6 @@ exports.editCourse = async (req, res) => {
     }
 
     // Check if user is the instructor of this course
-    const userId = req.User.id;
     if (existingCourse.Instructor.toString() !== userId) {
       return res.status(403).json({
         success: false,
@@ -243,20 +196,9 @@ exports.editCourse = async (req, res) => {
       });
     }
 
-    // Prepare update object
-    const updateData = {};
-    
-    if (courseName) updateData.courseName = courseName;
-    if (courseDescription) updateData.courseDescription = courseDescription;
-    if (whatYouWillLearn) updateData.whatYouWillLearn = whatYouWillLearn;
-    if (price) updateData.price = price;
-    if (status) updateData.status = status;
-    if (category) updateData.category = category;
-    if (instructions) updateData.instructions = instructions;
-
-    // Handle tags
-    if (tags) {
-      let tagDetails;
+    // Handle tags - accept JSON stringified array or single string or array
+    let tagDetails = existingCourse.tags; // Default to existing tags
+    if (tags !== undefined) {
       if (typeof tags === "string") {
         try {
           const maybeArray = JSON.parse(tags);
@@ -266,6 +208,7 @@ exports.editCourse = async (req, res) => {
             tagDetails = [tags];
           }
         } catch (e) {
+          // not JSON, treat as single tag string
           tagDetails = [tags];
         }
       } else if (Array.isArray(tags)) {
@@ -276,20 +219,23 @@ exports.editCourse = async (req, res) => {
           message: "Tags must be a string or array",
         });
       }
-      updateData.tags = tagDetails;
     }
 
     // Handle thumbnail upload if provided
+    let thumbnailImage = existingCourse.thumbnails; // Default to existing thumbnail
     if (req.file) {
+      console.log("req.file", req.file);
+      const file = req.file;
       try {
-        const thumbnailImage = await uploadImageToCloudinary(
-          req.file,
+        thumbnailImage = await uploadImageToCloudinary(
+          file,
           process.env.FOLDER_NAME
         );
-        updateData.thumbnails = thumbnailImage.secure_url;
+        thumbnailImage = thumbnailImage.secure_url;
       } catch (uploadError) {
         console.error("Cloudinary upload error:", uploadError);
         
+        // Handle specific file size error
         if (uploadError.message && uploadError.message.includes('File size too large')) {
           return res.status(400).json({
             success: false,
@@ -298,6 +244,7 @@ exports.editCourse = async (req, res) => {
           });
         }
         
+        // Handle other Cloudinary errors
         return res.status(400).json({
           success: false,
           message: "Failed to upload thumbnail image. Please try again.",
@@ -306,23 +253,53 @@ exports.editCourse = async (req, res) => {
       }
     }
 
+    // Build update object with only provided fields
+    const updateData = {};
+    if (courseName !== undefined) updateData.courseName = courseName;
+    if (courseDescription !== undefined) updateData.courseDescription = courseDescription;
+    if (whatYouWillLearn !== undefined) updateData.whatYouWillLearn = whatYouWillLearn;
+    if (price !== undefined) updateData.price = price;
+    if (tagDetails !== undefined) updateData.tags = tagDetails;
+    if (thumbnailImage !== undefined) updateData.thumbnails = thumbnailImage;
+    if (status !== undefined) {
+      if (status === "Draft" || status === "Published") {
+        updateData.status = status;
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Status must be either 'Draft' or 'Published'"
+        });
+      }
+    }
+    if (category !== undefined) updateData.category = category;
+
     // Update the course
     const updatedCourse = await course.findByIdAndUpdate(
       courseId,
-      updateData,
+      { $set: updateData },
       { new: true }
-    ).populate("Instructor").populate("category");
+    );
 
-    console.log("Updated Course", updatedCourse);
+    console.log("Course updated successfully", updatedCourse);
 
     return res.status(200).json({
       success: true,
-      message: "Course updated successfully",
       data: updatedCourse,
+      message: "Course updated successfully"
     });
 
   } catch (error) {
     console.error("EditCourse error:", error);
+    
+    // Handle specific Cloudinary errors that might not be caught in the upload block
+    if (error.message && error.message.includes('File size too large')) {
+      return res.status(400).json({
+        success: false,
+        message: "File size too large. Please upload an image smaller than 10MB.",
+        error: "FILE_SIZE_EXCEEDED"
+      });
+    }
+    
     return res.status(500).json({
       success: false,
       message: "Failed to update course. Please try again.",
@@ -331,31 +308,197 @@ exports.editCourse = async (req, res) => {
   }
 }
 
-// get all courses by instructor
-exports.getInstructorCourses = async (req, res) => {
+exports.getAllCourses = async (req, res) => {
   try {
-    const userId = req.User.id;
-    
-    // Find all courses created by this instructor
-    const instructorCourses = await course.find({
-      Instructor: userId
-    })
-    .populate("Instructor")
-    .populate("category")
-    .sort({ createdAt: -1 })
-    .exec();
+    const allCourses = await course.find(
+      { status: "Published" },
+      {
+        courseName: true,
+        price: true,
+        thumbnails: true,
+        Instructor: true,
+        ratingAndReviews: true,
+        studentsEnrolled: true,
+        category: true,
+        courseDescription: true,
+      }
+    )
+      .populate("Instructor")
+      .populate("category")
+      .exec()
 
     return res.status(200).json({
       success: true,
-      data: instructorCourses,
-    });
+      data: allCourses,
+    })
   } catch (error) {
-    console.error("GetInstructorCourses error:", error);
+    console.log(error)
+    return res.status(404).json({
+      success: false,
+      message: `Can't Fetch Course Data`,
+      error: error.message,
+    })
+  }
+}
+
+exports.getCourseDetails = async (req, res) => {
+  try {
+    const { courseId } = req.body
+    const courseDetails = await course.findOne({
+      _id: courseId,
+    })
+      .populate({
+        path: "Instructor",
+        populate: {
+          path: "additionalDetails",
+        },
+      })
+      .populate("category")
+      .populate("ratingAndReviews")
+      .populate({
+        path: "courseContent",
+        populate: {
+          path: "subSection",
+          select: "-videoUrl",
+        },
+      })
+      .exec()
+
+    if (!courseDetails) {
+      return res.status(400).json({
+        success: false,
+        message: `Could not find course with id: ${courseId}`,
+      })
+    }
+
+    // if (courseDetails.status === "Draft") {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: `Accessing a draft course is forbidden`,
+    //   });
+    // }
+
+    let totalDurationInSeconds = 0
+    courseDetails.courseContent.forEach((content) => {
+      content.subSection.forEach((subSection) => {
+        const timeDurationInSeconds = parseInt(subSection.timeDuration)
+        totalDurationInSeconds += timeDurationInSeconds
+      })
+    })
+
+    const totalDuration = convertSecondsToDuration(totalDurationInSeconds)
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        courseDetails,
+        totalDuration,
+      },
+    })
+  } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Failed to fetch instructor courses",
-      error: error?.message || "Unknown error",
-    });
+      message: error.message,
+    })
+  }
+}
+exports.getFullCourseDetails = async (req, res) => {
+  try {
+    const { courseId } = req.body
+    const userId = req.User.id
+    const courseDetails = await course.findOne({
+      _id: courseId,
+    })
+      .populate({
+        path: "Instructor",
+        populate: {
+          path: "additionalDetails",
+        },
+      })
+      .populate("category")
+      .populate("ratingAndReviews")
+      .populate({
+        path: "courseContent",
+        populate: {
+          path: "subSection",
+        },
+      })
+      .exec()
+
+    let courseProgressCount = await CourseProgress.findOne({
+      courseID: courseId,
+      userId: userId,
+    })
+
+    console.log("courseProgressCount : ", courseProgressCount)
+
+    if (!courseDetails) {
+      return res.status(400).json({
+        success: false,
+        message: `Could not find course with id: ${courseId}`,
+      })
+    }
+
+    // if (courseDetails.status === "Draft") {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: `Accessing a draft course is forbidden`,
+    //   });
+    // }
+
+    let totalDurationInSeconds = 0
+    courseDetails.courseContent.forEach((content) => {
+      content.subSection.forEach((subSection) => {
+        const timeDurationInSeconds = parseInt(subSection.timeDuration)
+        totalDurationInSeconds += timeDurationInSeconds
+      })
+    })
+
+    const totalDuration = convertSecondsToDuration(totalDurationInSeconds)
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        courseDetails,
+        totalDuration,
+        completedVideos: courseProgressCount?.completedVideos
+          ? courseProgressCount?.completedVideos
+          : [],
+      },
+    })
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    })
+  }
+}
+
+// Get a list of Course for a given Instructor
+exports.getInstructorCourses = async (req, res) => {
+  try {
+    // Get the instructor ID from the authenticated user or request body
+    const instructorId = req.User.id
+
+    // Find all courses belonging to the instructor
+    const instructorCourses = await course.find({
+      Instructor: instructorId,
+    })
+      .populate("category")
+      .sort({ createdAt: -1 })
+
+    // Return the instructor's courses
+    res.status(200).json({
+      success: true,
+      data: instructorCourses,
+    })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve instructor courses",
+      error: error.message,
+    })
   }
 }
 
@@ -431,3 +574,4 @@ exports.deleteCourse = async (req, res) => {
     });
   }
 }
+

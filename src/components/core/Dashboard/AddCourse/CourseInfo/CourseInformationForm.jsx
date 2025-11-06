@@ -46,9 +46,11 @@ export default function CourseInformationForm() {
       setValue("coursePrice", course.price)
       setValue("courseTags", course.tags)
       setValue("courseBenefits", course.whatYouWillLearn)
-      setValue("courseCategory", course.category)
+      // Handle category - it might be an object (populated) or just an ID
+      const categoryId = course.category?._id || course.category || ""
+      setValue("courseCategory", categoryId)
       setValue("courseRequirements", course.instructions)
-      setValue("courseImage", course.thumbnail)
+      setValue("courseImage", course.thumbnails)
     }
     getCategories()
 
@@ -72,10 +74,10 @@ export default function CourseInformationForm() {
       currentValues.coursePrice !== course.price ||
       currentValues.courseTags.toString() !== course.tags.toString() ||
       currentValues.courseBenefits !== course.whatYouWillLearn ||
-      currentValues.courseCategory._id !== course.category._id ||
+      (course.category?._id || course.category) !== (currentValues.courseCategory?._id || currentValues.courseCategory) ||
       currentValues.courseRequirements.toString() !==
         course.instructions.toString() ||
-      currentValues.courseImage !== course.thumbnail
+      currentValues.courseImage !== course.thumbnails
     ) {
       return true
     }
@@ -113,8 +115,11 @@ export default function CourseInformationForm() {
         if (currentValues.courseBenefits !== course.whatYouWillLearn) {
           formData.append("whatYouWillLearn", data.courseBenefits)
         }
-        if (currentValues.courseCategory._id !== course.category._id) {
-          formData.append("category", data.courseCategory)
+        // Handle category comparison - category might be populated object or just ID
+        const currentCategoryId = course.category?._id || course.category
+        const newCategoryId = data.courseCategory?._id || data.courseCategory
+        if (currentCategoryId !== newCategoryId) {
+          formData.append("category", newCategoryId)
         }
         if (
           currentValues.courseRequirements.toString() !==
@@ -125,7 +130,7 @@ export default function CourseInformationForm() {
             JSON.stringify(data.courseRequirements)
           )
         }
-        if (currentValues.courseImage !== course.thumbnail) {
+        if (currentValues.courseImage !== course.thumbnails) {
           formData.append("thumbnails", data.courseImage[0])
         }
         // console.log("Edit Form data: ", formData)

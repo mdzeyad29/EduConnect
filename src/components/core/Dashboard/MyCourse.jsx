@@ -23,7 +23,7 @@ export default function MyCourses() {
     fetchCourses()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
+console.log("courses in my courses",courses);
   return (
     <div>
       <div className="flex items-center justify-between mb-14">
