@@ -24,88 +24,111 @@ export const Navbar = () => {
     const [subLinks, setLinks] = useState([]);
     const [mobileMenu, setMobileMenu] = useState(false);
     const [loadingCategories, setLoadingCategories] = useState({});
+    const [mobileCatalogOpen, setMobileCatalogOpen] = useState(false);
+    const [loadingSubLinks, setLoadingSubLinks] = useState(true);
 
     const fetchSubLinks = async () => {
+        setLoadingSubLinks(true);
         try {
-            const result = await apiConnector("GET", categories.CATEGORIES_API)
-            console.log("Api result is ", result);
-            console.log("result.data is ", result.data);
-            // API returns { success: true, data: [...] }, so we need result.data.data
-            const categoriesData = result.data?.data || [];
-            console.log("Categories data is ", categoriesData);
-            setLinks(categoriesData); // Set the actual array of categories
-        } catch (err) {
-            console.log("Could not fetch the API data", err);
+            const response = await apiConnector("GET", categories.CATEGORIES_API);
+            
+            // Validate response structure
+            if (!response?.data?.success) {
+                throw new Error("Invalid API response structure");
+            }
+            
+            const categoriesData = response.data?.data || [];
+            setLinks(categoriesData);
+        } catch (error) {
+            console.error("Failed to fetch categories:", error);
+            // Set empty array on error to prevent showing stale data
+            setLinks([]);
+        } finally {
+            setLoadingSubLinks(false);
         }
-    }
+    };
+
     useEffect(() => {
         fetchSubLinks();
-    }, [])
-    
-    useEffect(() => {
-        console.log("subLinks are ", subLinks);
-    }, [subLinks]);
+    }, []);
 
-    // Function to fetch courses for a specific category
+    // Helper function to generate category URL slug
+    const generateCategoryUrl = (categoryName) => {
+        return categoryName?.toLowerCase().replace(/\s+/g, '-').replace(/\//g, '-') || '';
+    };
+
+    // Fetch courses for a specific category and navigate to catalog page
     const fetchCategoryCourses = async (categoryId, categoryName) => {
+        if (!categoryId || !categoryName) {
+            console.warn("Invalid category data provided:", { categoryId, categoryName });
+            return;
+        }
+
         try {
             setLoadingCategories(prev => ({ ...prev, [categoryId]: true }));
-            console.log("Fetching courses for category:", categoryName, "ID:", categoryId);
             
             const response = await apiConnector("POST", catalogData.CATALOGPAGEDATA_API, {
-                categoryId: categoryId,
+                categoryId,
             });
 
-            console.log("Category courses API response:", response);
+            const categoryUrl = generateCategoryUrl(categoryName);
 
             if (response?.data?.success && response?.data?.data?.selectedCategory) {
-                const courses = response.data.data.selectedCategory.courses || [];
-                console.log(`Found ${courses.length} courses for category ${categoryName}`);
+                const { selectedCategory, differentCategories } = response.data.data;
+                const courses = selectedCategory?.courses || [];
                 
-                // Navigate to catalog page with category data
-                const categoryUrl = categoryName?.toLowerCase().replace(/\s+/g, '-').replace(/\//g, '-');
                 navigate(`/catalog/${categoryUrl}`, {
                     state: {
-                        category: response.data.data.selectedCategory,
-                        courses: courses,
-                        differentCategories: response.data.data.differentCategories,
-                        categoryId: categoryId
+                        category: selectedCategory,
+                        courses,
+                        differentCategories,
+                        categoryId,
                     }
                 });
             } else {
-                console.log("No courses found or invalid response");
-                // Still navigate to catalog page with category info even if no courses
-                const categoryUrl = categoryName?.toLowerCase().replace(/\s+/g, '-').replace(/\//g, '-');
+                // Navigate with minimal category info if API response is invalid
                 navigate(`/catalog/${categoryUrl}`, {
                     state: {
                         category: { _id: categoryId, name: categoryName },
                         courses: [],
-                        categoryId: categoryId
+                        categoryId,
                     }
                 });
             }
         } catch (error) {
             console.error("Error fetching category courses:", error);
             // Navigate to catalog page even on error
-            const categoryUrl = categoryName?.toLowerCase().replace(/\s+/g, '-').replace(/\//g, '-');
+            const categoryUrl = generateCategoryUrl(categoryName);
             navigate(`/catalog/${categoryUrl}`);
         } finally {
             setLoadingCategories(prev => ({ ...prev, [categoryId]: false }));
         }
     };
 
-    // Handle category click
+    // Handle category click - redirects to login if not authenticated
     const handleCategoryClick = (e, category) => {
         e.preventDefault();
-        if (category._id) {
-            fetchCategoryCourses(category._id, category.name);
+        
+        // Redirect to login if user is not authenticated
+        if (!token) {
+            navigate("/login");
+            return;
         }
+        
+        // Validate category has required data before fetching
+        if (!category?._id) {
+            console.warn("Category missing required ID:", category);
+            return;
+        }
+        
+        fetchCategoryCourses(category._id, category.name);
     };
 
-    function matchRoute(route) {
-        if (!route) return false; // Handle undefined/null routes
-        return matchPath({ path: route }, location.pathname)
-    }
+    // Check if current route matches the provided route path
+    const matchRoute = (route) => {
+        if (!route) return false;
+        return matchPath({ path: route }, location.pathname);
+    };
 
     return (
         <div className='flex items-center justify-center text-white h-14 border-b-[1px] border-b-richblack-700 '>
@@ -160,7 +183,11 @@ export const Navbar = () => {
                                                     <div className='absolute  top-0 flex left-[36%] bg-richblack-5  rotate-45 rounded h-6 w-6 translate-y-[-27%]'>
                                                     </div>
                                                     {
-                                                        subLinks.length > 0 ? (
+                                                        loadingSubLinks ? (
+                                                            <div className="text-richblack-400 text-sm py-2">
+                                                                Loading categories...
+                                                            </div>
+                                                        ) : subLinks.length > 0 ? (
                                                             subLinks.map((subLink, index) => {
                                                                 const isLoading = loadingCategories[subLink._id];
                                                                 return (
@@ -214,23 +241,61 @@ export const Navbar = () => {
                     <div className="absolute top-14 left-0 right-0 bg-richblack-900 border-b border-richblack-700 md:hidden z-50">
                         <nav className="p-4">
                             <ul className="flex flex-col gap-4">
-                                {
-                                    NavbarLinks.map((link, index) => {
-                                        // Skip Catalog link in mobile menu if it doesn't have a path
-                                        if (!link.path) return null;
-                                        return (
-                                            <li key={index}>
-                                                <Link 
+                                {NavbarLinks.map((link, index) => (
+                                    <li key={index}>
+                                        {link.title === "Catalog" ? (
+                                            <div>
+                                                <button
+                                                    className="w-full flex items-center justify-between text-richblack-25"
+                                                    onClick={() => setMobileCatalogOpen((prev) => !prev)}
+                                                    aria-expanded={mobileCatalogOpen}
+                                                    aria-controls="mobile-catalog-submenu"
+                                                >
+                                                    <span>{link.title}</span>
+                                                    <FaAngleDown className={`transition-transform ${mobileCatalogOpen ? 'rotate-180' : ''}`} />
+                                                </button>
+                                                {mobileCatalogOpen && (
+                                                    <div id="mobile-catalog-submenu" className="mt-2 pl-3 flex flex-col gap-2">
+                                                        {loadingSubLinks ? (
+                                                            <div className="text-richblack-400 text-sm py-2">Loading categories...</div>
+                                                        ) : subLinks.length > 0 ? (
+                                                            subLinks.map((subLink) => {
+                                                                const isLoading = loadingCategories[subLink._id]
+                                                                return (
+                                                                    <button
+                                                                        key={subLink._id}
+                                                                        onClick={(e) => {
+                                                                            handleCategoryClick(e, subLink)
+                                                                            setMobileMenu(false)
+                                                                        }}
+                                                                        className="text-left text-richblack-300 hover:text-richblack-25"
+                                                                    >
+                                                                        {subLink.name}
+                                                                        {isLoading && (
+                                                                            <span className="ml-2 text-xs text-richblack-400">Loading...</span>
+                                                                        )}
+                                                                    </button>
+                                                                )
+                                                            })
+                                                        ) : (
+                                                            <div className="text-richblack-400 text-sm">No categories available</div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            link.path ? (
+                                                <Link
                                                     to={link.path}
                                                     onClick={() => setMobileMenu(false)}
-                                                    className={`${matchRoute(link.path) ? "text-yellow-25" : "text-richblack-25"}`}
+                                                    className={`${matchRoute(link.path) ? 'text-yellow-25' : 'text-richblack-25'}`}
                                                 >
                                                     {link.title}
                                                 </Link>
-                                            </li>
-                                        )
-                                    })
-                                }
+                                            ) : null
+                                        )}
+                                    </li>
+                                ))}
                             </ul>
                             {/* Mobile Auth Buttons */}
                             <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-richblack-700">
