@@ -52,7 +52,7 @@ export const Navbar = () => {
         fetchSubLinks();
     }, []);
 
-    // Helper function to generate category URL slug
+    
     const generateCategoryUrl = (categoryName) => {
         return categoryName?.toLowerCase().replace(/\s+/g, '-').replace(/\//g, '-') || '';
     };
