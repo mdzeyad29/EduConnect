@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { getAllCourses, fetchCourseCategories, fetchCourseDetails, fetchInstructorCourses } from "../../services/operations/courseDetailsAPI";
+import { getAllCourses, fetchCourseCategories, fetchInstructorCourses } from "../../services/operations/courseDetailsAPI";
 import { apiConnector } from "../../services/apiconnector";
 import { catalogData } from "../../services/apis";
 import { ACCOUNT_TYPE } from "../../utils/constants";
 import { FaStar } from "react-icons/fa";
 import { HiArrowLeft } from "react-icons/hi";
-import { IoMdClose } from "react-icons/io";
 
 const Catalog = () => {
   const { categoryName } = useParams();
@@ -20,9 +19,6 @@ const Catalog = () => {
   const [category, setCategory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [allCategories, setAllCategories] = useState([]);
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [courseDetails, setCourseDetails] = useState(null);
-  const [loadingDetails, setLoadingDetails] = useState(false);
 
   useEffect(() => {
     const fetchCategoryData = async () => {
@@ -285,19 +281,12 @@ const Catalog = () => {
               <div
                 key={course._id}
                 className="group bg-richblack-800 rounded-lg overflow-hidden border border-richblack-700 hover:border-yellow-50 transition-all duration-200 hover:shadow-xl cursor-pointer"
-                onClick={async () => {
-                  setSelectedCourse(course);
-                  setLoadingDetails(true);
-                  try {
-                    const details = await fetchCourseDetails(course._id);
-                    console.log("Course Details:", details);
-                    if (details?.success && details?.data) {
-                      setCourseDetails(details.data);
-                    }
-                  } catch (error) {
-                    console.error("Error fetching course details:", error);
-                  } finally {
-                    setLoadingDetails(false);
+                onClick={() => {
+                  // Navigate to course details page
+                  if (isInstructor) {
+                    navigate(`/dashboard/my-courses/${course._id}`);
+                  } else {
+                    navigate(`/course/${course._id}`);
                   }
                 }}
               >
@@ -362,169 +351,6 @@ const Catalog = () => {
         </div>
       )}
 
-      {/* Course Details Modal */}
-      {selectedCourse && (
-        <div className="fixed inset-0 bg-richblack-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-richblack-800 rounded-xl border border-richblack-700 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            {/* Header */}
-            <div className="sticky top-0 bg-richblack-800 border-b border-richblack-700 p-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-richblack-5">Course Details</h2>
-              <button
-                onClick={() => {
-                  setSelectedCourse(null);
-                  setCourseDetails(null);
-                }}
-                className="text-richblack-300 hover:text-richblack-5 transition-colors"
-              >
-                <IoMdClose size={24} />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="p-6">
-              {loadingDetails ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-50"></div>
-                </div>
-              ) : courseDetails ? (
-                <div className="space-y-6">
-                  {/* Course Image and Basic Info */}
-                    <div className="flex flex-col md:flex-row gap-6">
-                      <img
-                        src={courseDetails.thumbnails || courseDetails.thumbnail || selectedCourse?.thumbnails}
-                        alt={courseDetails.courseName}
-                        className="w-full md:w-1/2 h-64 object-cover rounded-lg"
-                      />
-                      <div className="flex-1">
-                        <h3 className="text-3xl font-bold text-richblack-5 mb-2">
-                          {courseDetails.courseName}
-                        </h3>
-                        <p className="text-richblack-300 mb-4">
-                          {courseDetails.courseDescription}
-                        </p>
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="text-2xl font-bold text-yellow-50">
-                            ₹{courseDetails.price}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <FaStar className="text-yellow-50" size={20} />
-                            <span className="text-richblack-300">
-                              {courseDetails.ratingAndReviews?.length || 0} Ratings
-                            </span>
-                          </div>
-                        </div>
-                        {courseDetails.Instructor && (
-                          <div className="mb-4">
-                            <p className="text-richblack-400 text-sm mb-1">Instructor</p>
-                            <p className="text-richblack-5 font-medium">
-                              {typeof courseDetails.Instructor === 'object'
-                                ? `${courseDetails.Instructor.firstName || ''} ${courseDetails.Instructor.lastName || ''}`
-                                : 'N/A'}
-                            </p>
-                            {courseDetails.Instructor?.additionalDetails && (
-                              <p className="text-richblack-400 text-sm mt-1">
-                                {courseDetails.Instructor.additionalDetails?.about || ''}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* What You Will Learn */}
-                    {courseDetails.whatYouWillLearn && (
-                      <div className="border-t border-richblack-700 pt-6">
-                        <h4 className="text-xl font-semibold text-richblack-5 mb-3">
-                          What You'll Learn
-                        </h4>
-                        <p className="text-richblack-300">{courseDetails.whatYouWillLearn}</p>
-                      </div>
-                    )}
-
-                    {/* Course Content */}
-                    {courseDetails.courseContent && courseDetails.courseContent.length > 0 && (
-                      <div className="border-t border-richblack-700 pt-6">
-                        <h4 className="text-xl font-semibold text-richblack-5 mb-4">
-                          Course Content ({courseDetails.courseContent.length} sections)
-                        </h4>
-                        <div className="space-y-4">
-                          {courseDetails.courseContent.map((section, sectionIdx) => (
-                            <div
-                              key={section._id || sectionIdx}
-                              className="bg-richblack-900 rounded-lg p-4 border border-richblack-700"
-                            >
-                              <h5 className="text-lg font-medium text-richblack-5 mb-2">
-                                Section {sectionIdx + 1}: {section.sectionName || 'Untitled Section'}
-                              </h5>
-                              {section.sectionDescription && (
-                                <p className="text-richblack-400 text-sm mb-3">
-                                  {section.sectionDescription}
-                                </p>
-                              )}
-                              {section.subSection && section.subSection.length > 0 && (
-                                <div className="ml-4 space-y-2">
-                                  {section.subSection.map((subSection, subIdx) => (
-                                    <div
-                                      key={subSection._id || subIdx}
-                                      className="text-richblack-300 text-sm flex items-center gap-2"
-                                    >
-                                      <span className="w-2 h-2 bg-yellow-50 rounded-full"></span>
-                                      {subSection.title || `Lecture ${subIdx + 1}`}
-                                      {subSection.timeDuration && (
-                                        <span className="text-richblack-500">
-                                          ({subSection.timeDuration})
-                                        </span>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Instructions */}
-                    {courseDetails.instructions && courseDetails.instructions.length > 0 && (
-                      <div className="border-t border-richblack-700 pt-6">
-                        <h4 className="text-xl font-semibold text-richblack-5 mb-3">
-                          Instructions
-                        </h4>
-                        <ul className="list-disc list-inside space-y-2 text-richblack-300">
-                          {courseDetails.instructions.map((instruction, idx) => (
-                            <li key={idx}>{instruction}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Tags */}
-                    {courseDetails.tags && courseDetails.tags.length > 0 && (
-                      <div className="border-t border-richblack-700 pt-6">
-                        <h4 className="text-xl font-semibold text-richblack-5 mb-3">Tags</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {courseDetails.tags.map((tag, idx) => (
-                            <span
-                              key={idx}
-                              className="px-3 py-1 bg-richblack-900 border border-richblack-700 rounded-full text-sm text-richblack-300"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-richblack-300">
-                  <p>Failed to load course details</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
