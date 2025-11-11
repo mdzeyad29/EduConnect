@@ -19,7 +19,7 @@ export const Navbar = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { token } = useSelector((state) => state.auth);
-    const { totalItem } = useSelector((state) => state.cart);
+    const { totalItems } = useSelector((state) => state.cart);
     const { user } = useSelector((state) => state.profile)
     const [subLinks, setLinks] = useState([]);
     const [mobileMenu, setMobileMenu] = useState(false);
@@ -315,9 +315,13 @@ export const Navbar = () => {
                                 ) : (
                                     <>
                                         {user && user?.accountType !== "Instructor" && (
-                                            <Link to="/dashboard/cart" onClick={() => setMobileMenu(false)} className='flex items-center gap-2 text-richblack-25'>
-                                                <CiShoppingCart size={24} />
-                                                {totalItem > 0 && <span>({totalItem})</span>}
+                                            <Link to="/dashboard/cart" onClick={() => setMobileMenu(false)} className='flex items-center gap-2 text-richblack-25 relative'>
+                                                <CiShoppingCart size={40} />
+                                                {totalItems > 0 && (
+                                                    <span className="absolute -top-1 -right-1 bg-yellow-50 text-richblack-900 rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold">
+                                                        {totalItems}
+                                                    </span>
+                                                )}
                                             </Link>
                                         )}
                                         <ProfileDropdown />
@@ -334,11 +338,12 @@ export const Navbar = () => {
                     {
                         user && user?.accountType !== "Instructor" && (
                             <Link to="/dashboard/cart" className='relative'>
-                                <CiShoppingCart />{
-                                    totalItem > 0 && (
-                                        <span>{totalItem}</span>
-                                    )
-                                }
+                                <CiShoppingCart   size={32}/>
+                                {totalItems > 0 && (
+                                    <span className="absolute -top-1 -right-2 bg-yellow-50 text-richblack-900 rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold">
+                                        {totalItems}
+                                    </span>
+                                )}
                             </Link>
                         )
                     }

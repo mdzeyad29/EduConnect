@@ -21,6 +21,7 @@ import { ACCOUNT_TYPE } from "./utils/constants";
 import MyCourses from "./components/core/Dashboard/MyCourse";
 import Catalog from "./pages/Catalog";
 import Social from "./components/core/Social";
+import CourseDetails from "./components/core/Dashboard/CourseDetails";
 
 
 function App() {
@@ -29,8 +30,9 @@ function App() {
    <div className="flex flex-col w-full min-h-screen bg-richblack-900 font-inter overflow-x-hidden">
     <Navbar/>
     <Routes>
-      <Route path="/" element={<Home/>} />
-      <Route path="/catalog/:categoryName" element={<Catalog/>} />
+    <Route path="/" element={<Home/>} />
+    <Route path="/catalog/:categoryName" element={<Catalog/>} />
+    <Route path="/course/:courseId" element={<CourseDetails />} />
       <Route
           path="signup"
           element={
@@ -106,6 +108,7 @@ function App() {
         user?.accountType === ACCOUNT_TYPE.INSTRUCTOR && (
           <>
           <Route path="dashboard/my-courses" element={<MyCourses />} />
+          <Route path="dashboard/my-courses/:courseId" element={<CourseDetails />} />
            <Route path="/dashboard/add-course" element={<AddCourse />}  />
           
           </>

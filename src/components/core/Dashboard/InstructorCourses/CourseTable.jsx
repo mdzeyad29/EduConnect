@@ -76,7 +76,13 @@ console.log("coursesssssss", courses )
             courses?.map((course) => (
               <Tr
                 key={course._id}
-                className="flex px-6 py-8 border-b gap-x-10 border-richblack-800"
+                className="flex px-6 py-8 border-b gap-x-10 border-richblack-800 cursor-pointer hover:bg-richblack-800 transition-colors"
+                onClick={(e) => {
+                  // Only navigate if the click is not on a button
+                  if (e.target.closest('button') === null) {
+                    navigate(`/dashboard/my-courses/${course._id}`)
+                  }
+                }}
               >
                 <Td className="flex flex-1 gap-x-4">
                   <img
@@ -118,10 +124,14 @@ console.log("coursesssssss", courses )
                 <Td className="text-sm font-medium text-richblack-100">
                   ₹{course.price}
                 </Td>
-                <Td className="text-sm font-medium text-richblack-100 ">
+                <Td 
+                  className="text-sm font-medium text-richblack-100"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <button
                     disabled={loading}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation()
                       navigate(`/dashboard/edit-course/${course._id}`)
                     }}
                     title="Edit"
@@ -131,7 +141,8 @@ console.log("coursesssssss", courses )
                   </button>
                   <button
                     disabled={loading}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation()
                       setConfirmationModal({
                         text1: "Do you want to delete this course?",
                         text2:
