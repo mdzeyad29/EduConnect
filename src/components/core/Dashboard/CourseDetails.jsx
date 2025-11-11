@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchCourseDetails } from "../../../services/operations/courseDetailsAPI";
 import { FaStar, FaStarHalfAlt } from "react-icons/fa";
 import { HiClock } from "react-icons/hi";
 import { MdLock, MdPhoneAndroid } from "react-icons/md";
 import { AiOutlineSafetyCertificate } from "react-icons/ai";
 import { HiInformationCircle, HiGlobeAlt } from "react-icons/hi";
+import { addToCart } from "../../../slice/cartSlice";
 
 const CourseDetails = () => {
   const { courseId } = useParams();
@@ -15,7 +16,7 @@ const CourseDetails = () => {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [totalDurationFromAPI, setTotalDurationFromAPI] = useState(null);
-
+const dispatch = useDispatch();
   useEffect(() => {
     const getCourseDetails = async () => {
       setLoading(true);
@@ -42,6 +43,11 @@ const CourseDetails = () => {
     }
   }, [courseId]);
 
+
+  const HandleAddToCart = (course) => {
+    dispatch(addToCart(course));
+
+  }
   // Calculate average rating
   const calculateAverageRating = () => {
     if (!course?.ratingAndReviews || course.ratingAndReviews.length === 0) {
@@ -457,7 +463,8 @@ const CourseDetails = () => {
 
                 {/* Buttons */}
                 <div className="space-y-3">
-                  <button className="w-full bg-yellow-50 text-richblack-900 py-3 rounded-lg font-semibold hover:bg-yellow-100 transition-colors">
+                  <button className="w-full bg-yellow-50 text-richblack-900 py-3 rounded-lg font-semibold hover:bg-yellow-100 transition-colors" 
+                  onClick={() => HandleAddToCart(course)}>
                     Add to Cart
                   </button>
                   <button className="w-full bg-richblack-700 text-richblack-5 py-3 rounded-lg font-semibold hover:bg-richblack-600 transition-colors border border-richblack-600">
