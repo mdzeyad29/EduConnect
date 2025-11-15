@@ -22,6 +22,12 @@ export const studentEndpoints = {
   SEND_PAYMENT_SUCCESS_EMAIL_API: BASE_URL + "/payment/sendPaymentSuccessEmail",
 }
 
+// PAYMENT ENDPOINTS
+export const paymentEndpoints = {
+  CAPTURE_MULTIPLE_PAYMENT_API: BASE_URL + "/payment/captureMultiplePayment",
+  ENROLL_COURSE_API: BASE_URL + "/payment/EnrlledCourseDetails",
+}
+
 // COURSE ENDPOINTS
 export const courseEndpoints = {
   GET_ALL_COURSE_API: BASE_URL + "/course/getAllCourses",

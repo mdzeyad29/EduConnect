@@ -2,9 +2,15 @@
 const express = require("express")
 const router = express.Router()
 
-const { capturePayment, verifySignature } = require("../controller/Payment")
+const { 
+    verifySignature, 
+    captureMultiplePayment, 
+    EnrlledCourseDetails 
+} = require("../controller/Payment")
 const { auth, isInstructor, isStudent, isAdmin } = require("../middleware/Auth")
-router.post("/capturePayment", auth, isStudent, capturePayment)
+
 router.post("/verifySignature", verifySignature)
+router.post("/captureMultiplePayment", auth, isStudent, captureMultiplePayment)
+router.post("/EnrlledCourseDetails", auth, isStudent, EnrlledCourseDetails)
 
 module.exports = router

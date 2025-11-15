@@ -8,11 +8,14 @@ import { MdLock, MdPhoneAndroid } from "react-icons/md";
 import { AiOutlineSafetyCertificate } from "react-icons/ai";
 import { HiInformationCircle, HiGlobeAlt } from "react-icons/hi";
 import { addToCart } from "../../../slice/cartSlice";
+import { captureMultiplePayment } from "../../../services/operations/buynow";
+import { toast } from "react-hot-toast";
 
 const CourseDetails = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const { token } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.profile);
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [totalDurationFromAPI, setTotalDurationFromAPI] = useState(null);
@@ -46,8 +49,23 @@ const dispatch = useDispatch();
 
   const HandleAddToCart = (course) => {
     dispatch(addToCart(course));
+  };
 
-  }
+  const HandleBuyNow = async () => {
+    if (!course || !token) {
+      toast.error("Please login to purchase the course");
+      return;
+    }
+
+    // Format course data for payment (array format)
+    const courses = [course];
+    
+    try {
+      await captureMultiplePayment(token, courses, navigate, user, dispatch);
+    } catch (error) {
+      console.error("Buy now error:", error);
+    }
+  };
   // Calculate average rating
   const calculateAverageRating = () => {
     if (!course?.ratingAndReviews || course.ratingAndReviews.length === 0) {
@@ -467,7 +485,10 @@ const dispatch = useDispatch();
                   onClick={() => HandleAddToCart(course)}>
                     Add to Cart
                   </button>
-                  <button className="w-full bg-richblack-700 text-richblack-5 py-3 rounded-lg font-semibold hover:bg-richblack-600 transition-colors border border-richblack-600">
+                  <button 
+                    className="w-full bg-richblack-700 text-richblack-5 py-3 rounded-lg font-semibold hover:bg-richblack-600 transition-colors border border-richblack-600"
+                    onClick={HandleBuyNow}
+                  >
                     Buy now
                   </button>
                 </div>
@@ -506,8 +527,8 @@ const dispatch = useDispatch();
           </div>
         </div>
       </div>
-    </div>
-  );
+        </div>
+    );
 };
 
 export default CourseDetails;
