@@ -27,6 +27,12 @@ const courseSchema =new mongoose.Schema(
 			ref: "RatingAndReview",
 		},
 	],
+  studentsEnrolled: [
+		{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "user",
+		},
+	],
     whatYouWillLearn:{
        type:String,
       required:true
