@@ -22,6 +22,7 @@ import MyCourses from "./components/core/Dashboard/MyCourse";
 import Catalog from "./pages/Catalog";
 import Social from "./components/core/Social";
 import CourseDetails from "./components/core/Dashboard/CourseDetails";
+import CartCourse from "./pages/CartPage/cartCourse";
 
 
 function App() {
@@ -94,6 +95,7 @@ function App() {
     />
 
     <Route path="/socials" element={<Social />} />
+    {/* <Route path="/cart" element={<CartCourse />} /> */}
 
     
     <Route 
@@ -110,13 +112,13 @@ function App() {
           <Route path="dashboard/my-courses" element={<MyCourses />} />
           <Route path="dashboard/my-courses/:courseId" element={<CourseDetails />} />
            <Route path="/dashboard/add-course" element={<AddCourse />}  />
-          
           </>
         )
       }
       <Route path="dashboard/my-profile" element={<MyProfile />} />
        <Route path="dashboard/Settings" element={<Settings />} />
        <Route path="/dashboard/enrolled-courses" element={<Enroll />} />
+       <Route path="/dashboard/cart" element={<CartCourse />} />
        
      </Route>
 

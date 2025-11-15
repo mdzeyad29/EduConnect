@@ -1,7 +1,7 @@
 import { toast } from "react-hot-toast"
 // ../apiconnector
 import { setLoading, setToken } from "../../slice/authSlice"
-import { resetCart } from "../../slice/cartSlice"
+import { resetCart, loadUserCart } from "../../slice/cartSlice"
 import { setUser } from "../../slice/profileSlice"
 import { apiConnector } from "../apiconnector"
 import { endpoints } from "../apis"
@@ -131,6 +131,14 @@ export function login(email, password, navigate) {
       dispatch(setUser({ ...response.data.user, image: userImage }))
       localStorage.setItem("token", JSON.stringify(response.data.token))
       localStorage.setItem("user", JSON.stringify(response.data.user))
+      
+      // Load user-specific cart after login
+      // Convert userId to string to ensure consistency
+      const userId = response.data.user._id || response.data.user.id
+      if (userId) {
+        dispatch(loadUserCart(String(userId)))
+      }
+      
       navigate("/dashboard/my-profile")
     } catch (error) {
       console.log("LOGIN API ERROR............", error)
