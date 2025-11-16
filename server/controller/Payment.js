@@ -265,6 +265,98 @@ exports.captureMultiplePayment = async(req,res)=>{
 // }
 
 
+// Verify payment using client-provided signature and enroll user
+exports.verifyPayment = async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, courses } = req.body || {};
+    const userId = req.User?.id;
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing razorpay verification fields",
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: Missing user",
+      });
+    }
+
+    if (!Array.isArray(courses) || courses.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid courses data",
+      });
+    }
+
+    // Verify signature: HMAC_SHA256(order_id|payment_id, RAZORPAY_SECRET)
+    const body = `${razorpay_order_id}|${razorpay_payment_id}`;
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_SECRET)
+      .update(body.toString())
+      .digest("hex");
+
+    if (expectedSignature !== razorpay_signature) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid payment signature",
+      });
+    }
+
+    // Enroll the user in the courses
+    const uid = userId instanceof mongoose.Types.ObjectId ? userId : new mongoose.Types.ObjectId(userId);
+    const enrolledCourseIds = [];
+
+    for (const courseItem of courses) {
+      let courseId = null;
+      if (typeof courseItem === "string") courseId = courseItem;
+      else if (courseItem?._id) courseId = courseItem._id;
+      else if (courseItem?.courseId) courseId = courseItem.courseId;
+      else if (courseItem?.id) courseId = courseItem.id;
+
+      if (!courseId) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid course data format. Course ID is missing.",
+        });
+      }
+
+      courseId = courseId.toString();
+      const found = await Course.findById(courseId);
+      if (!found) {
+        return res.status(400).json({
+          success: false,
+          message: `Course with ID ${courseId} not found`,
+        });
+      }
+
+      const already = (found.studentsEnrolled || []).map((id) => id.toString()).includes(uid.toString());
+      if (!already) {
+        await Course.findByIdAndUpdate(courseId, { $push: { studentsEnrolled: uid } });
+        await user.findByIdAndUpdate(uid, { $push: { courses: courseId } });
+        enrolledCourseIds.push(courseId);
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Payment verified and enrollment completed",
+      enrolled: enrolledCourseIds,
+      orderId: razorpay_order_id,
+      paymentId: razorpay_payment_id,
+    });
+  } catch (error) {
+    console.error("verifyPayment error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to verify payment",
+    });
+  }
+};
+
 // verify Signature of Razorpay and Server
 exports.verifySignature = async(req,res)=>{
  const webhookSecret = "123456" ;
