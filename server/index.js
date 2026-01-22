@@ -32,11 +32,15 @@ cloudinaryConnect();
 app.use(express.json());
 app.use(cookieParser());
 app.use(
-	cors({
-		origin:"http://localhost:3000",
-		credentials:true,
-	})
-)
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://your-frontend.vercel.app"
+    ],
+    credentials: true,
+  })
+);
+
 
 // Removed express-fileupload; multer is used on specific routes
 
