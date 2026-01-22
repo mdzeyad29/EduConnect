@@ -34,9 +34,19 @@ exports.auth = async(req,res,next)=>{
              console.log(process.env.JWT_SECRET);
         }catch(error){
            console.log(error);
+           // Check if token is expired
+           if(error.name === 'TokenExpiredError'){
+               return res.status(401).json({
+                success:false,
+                message:"Token has expired. Please login again.",
+                expired: true
+               })
+           }
+           // For other JWT errors (invalid token, malformed, etc.)
            return res.status(401).json({
-            status:false,
-            message:"token is invalidss"
+            success:false,
+            message:"Token is invalid. Please login again.",
+            expired: false
            })
         }
         next();
