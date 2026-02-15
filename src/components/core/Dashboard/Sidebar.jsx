@@ -42,17 +42,19 @@ export const Sidebar = () => {
     {/* Sidebar */}
     <div className={`${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 flex lg:h-[calc(100vh-3.5rem)] h-auto min-w-[220px] flex-col border-r-[1px] border-r-richblack-700 bg-richblack-800 py-10 transition-transform duration-300 lg:transition-none`}>
     <div  className="flex flex-col">
-    {
-        sidebarLinks.map((links,index)=>{
-           
-         if(links.type && user.accountType !== links.type){
-                return null;
-            }
-             return (
-              <SidebarLink key={links.id} link={links} iconName={links.icon} />
-            )
-    })
-    }
+    {sidebarLinks?.map((links) => {
+  if (links?.type && user?.accountType !== links.type) {
+    return null
+  }
+  return (
+    <SidebarLink
+      key={links.id}
+      link={links}
+      iconName={links.icon}
+    />
+  )
+})}
+
     </div>
     <div className="mx-auto mt-6 mb-6 h-[1px] w-10/12 bg-richblack-700" />
         <div className="flex flex-col">
