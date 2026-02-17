@@ -15,7 +15,6 @@ axiosInstance.interceptors.response.use(
   (error) => {
     // Handle 401 Unauthorized errors (token expired or invalid)
     if (error.response && error.response.status === 401) {
-      const errorMessage = error.response.data?.message || "Your session has expired. Please login again.";
       const isExpired = error.response.data?.expired;
       
       // Clear token and user data from localStorage
